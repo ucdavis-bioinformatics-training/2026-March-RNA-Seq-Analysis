@@ -1,8 +1,8 @@
 All documentation for the workshop is best viewed from the github.io pages
 
-[Documentation](https://ucdavis-bioinformatics-training.github.io/2025-June-RNA-Seq-Analysis/)
+[Documentation](https://ucdavis-bioinformatics-training.github.io/2026-March-RNA-Seq-Analysis/)
 
-June 2, 2025 - June 6, 2025, 9 a.m. - 5:00 p.m daily. **online learning**
+March 23, 2026 - March 26, 2026, 9 a.m. - 5:00 p.m daily. **online learning**
 
 Contact - UC Davis Bioinformatics Core, [training.bioinformatics@ucdavis.edu](mailto:training.bioinformatics@ucdavis.edu)
 
