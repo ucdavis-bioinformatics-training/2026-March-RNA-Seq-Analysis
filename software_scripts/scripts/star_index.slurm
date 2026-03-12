@@ -20,18 +20,18 @@ outpath="References"
 mkdir -p ${outpath}
 
 cd ${outpath}
-#wget https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M37/GRCm39.primary_assembly.genome.fa.gz
+#wget https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M38/GRCm39.primary_assembly.genome.fa.gz
 #gunzip GRCm39.primary_assembly.genome.fa.gz
 #FASTA="../GRCm39.primary_assembly.genome.fa"
 FASTA="/share/workshop/mrnaseq_workshop/Data/GRCm39.primary_assembly.genome.fa"
 
-#wget https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M37/gencode.vM37.basic.annotation.gtf.gz
-#gunzip gencode.vM37.basic.annotation.gtf.gz
-#GTF="../gencode.vM37.basic.annotation.gtf"
-GTF="/share/workshop/mrnaseq_workshop/Data/gencode.vM37.basic.annotation.gtf"
+#wget https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M38/gencode.vM38.basic.annotation.gtf.gz
+#gunzip gencode.vM38.basic.annotation.gtf.gz
+#GTF="../gencode.vM38.basic.annotation.gtf"
+GTF="/share/workshop/mrnaseq_workshop/Data/gencode.vM38.basic.annotation.gtf"
 
-mkdir star.overlap100.gencode.M37
-cd star.overlap100.gencode.M37
+mkdir star.overlap100.gencode.M38
+cd star.overlap100.gencode.M38
 
 module load star
 

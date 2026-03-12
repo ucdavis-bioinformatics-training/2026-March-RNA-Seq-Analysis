@@ -309,7 +309,7 @@ Paste contents of mouse_rrna.fa and save
 This is *really* cheating, but if all else fails, download the file as follows:
 ```bash
 cd /share/workshop/mrnaseq_workshop/$USER/rnaseq_example/References
-wget https://ucdavis-bioinformatics-training.github.io/2025-June-RNA-Seq-Analysis/data_reduction/mouse_rrna.fasta
+wget https://ucdavis-bioinformatics-training.github.io/2026-March-RNA-Seq-Analysis/data_reduction/mouse_rrna.fasta
 ```
 
 ### Using HTStream to count ribosomal rna (not remove, but just to count the occurrences).
@@ -566,7 +566,7 @@ We can now run the preprocessing routine across all samples on the real data usi
 
 ```bash
 cd /share/workshop/mrnaseq_workshop/$USER/rnaseq_example  # We'll run this from the main directory
-wget https://ucdavis-bioinformatics-training.github.io/2025-June-RNA-Seq-Analysis/software_scripts/scripts/hts_preproc.slurm
+wget https://ucdavis-bioinformatics-training.github.io/2026-March-RNA-Seq-Analysis/software_scripts/scripts/hts_preproc.slurm
 less hts_preproc.slurm
 ```
 
