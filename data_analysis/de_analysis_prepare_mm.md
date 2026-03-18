@@ -90,8 +90,10 @@ I've also uploaded to the github repo. In the R console run the following comman
 download.file("https://raw.githubusercontent.com/ucdavis-bioinformatics-training/2026-March-RNA-Seq-Analysis/master/datasets/rnaseq_workshop_counts.txt", "rnaseq_workshop_counts.txt")
 ```
 
-```r
-download.file("https://raw.githubusercontent.com/ucdavis-bioinformatics-training/2026-March-RNA-Seq-Analysis/master/datasets/ensembl_mm_115.txt", "ensembl_mm_115.txt")
+The file with information from BioMart is too big to be hosted on github, so please use the command line approach to download it from the computing cluster
+
+```bash
+scp [your_username]@tadpole.genomecenter.ucdavis.edu:/share/workshop/mrnaseq_workshop/Data/ensembl_mm_115.txt .
 ```
 
 #### For the salmon datasets
