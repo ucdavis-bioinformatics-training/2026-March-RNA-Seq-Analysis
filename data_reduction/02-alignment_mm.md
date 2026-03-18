@@ -19,10 +19,10 @@ mkdir -p /share/workshop/mrnaseq_workshop/$USER/rnaseq_example
 cd /share/workshop/mrnaseq_workshop/$USER/rnaseq_example
 mkdir -p References
 
-refcheck=$(egrep "DONE: Genome generation" References/star.overlap100.gencode.M37/Log.out)
+refcheck=$(egrep "DONE: Genome generation" References/star.overlap100.gencode.M38/Log.out)
 if [[ ! -z $refcheck ]]
 then
-  ln -s /share/workshop/mrnaseq_workshop/Data/star.overlap100.gencode.M37 References/.
+  ln -s /share/workshop/mrnaseq_workshop/Data/star.overlap100.gencode.M38 References/.
 fi
 
 cp -r /share/workshop/mrnaseq_workshop/jli/rnaseq_example/HTS_testing .
@@ -204,7 +204,7 @@ What does stranded and unstranded mean? Which is better and why? [Stranded vs Un
     module load star/2.7.11b
     STAR \
     --runThreadN 12 \
-       --genomeDir /share/workshop/mrnaseq_workshop/Data/star.overlap100.gencode.M37 \
+       --genomeDir /share/workshop/mrnaseq_workshop/Data/star.overlap100.gencode.M38 \
        --outSAMtype BAM SortedByCoordinate \
        --quantMode GeneCounts \
        --outFileNamePrefix mouse_110_WT_C.htstream_ \
@@ -331,7 +331,7 @@ What does stranded and unstranded mean? Which is better and why? [Stranded vs Un
 
     ```bash
     cd /share/workshop/mrnaseq_workshop/$USER/rnaseq_example  # We'll run this from the main directory
-    wget https://raw.githubusercontent.com/ucdavis-bioinformatics-training/2025-June-RNA-Seq-Analysis/master/software_scripts/scripts/star.slurm
+    wget https://raw.githubusercontent.com/ucdavis-bioinformatics-training/2026-March-RNA-Seq-Analysis/master/software_scripts/scripts/star.slurm
     less star.slurm
     ```
 
@@ -354,7 +354,7 @@ What does stranded and unstranded mean? Which is better and why? [Stranded vs Un
     echo "My SLURM_ARRAY_TASK_ID: " $SLURM_ARRAY_TASK_ID
 
     sample=`sed "${SLURM_ARRAY_TASK_ID}q;d" samples.txt`
-    REF="/share/workshop/mrnaseq_workshop/Data/star.overlap100.gencode.M37"
+    REF="/share/workshop/mrnaseq_workshop/Data/star.overlap100.gencode.M38"
 
     outpath='02-STAR_alignment'
     [[ -d ${outpath} ]] || mkdir ${outpath}
@@ -408,7 +408,7 @@ When you are done, type "q" to exit.
 
     ```bash
     cd /share/workshop/mrnaseq_workshop/$USER/rnaseq_example # We'll run this from the main directory
-    wget https://raw.githubusercontent.com/ucdavis-bioinformatics-training/2025-June-RNA-Seq-Analysis/master/software_scripts/scripts/star_stats.sh
+    wget https://raw.githubusercontent.com/ucdavis-bioinformatics-training/2026-March-RNA-Seq-Analysis/master/software_scripts/scripts/star_stats.sh
     bash star_stats.sh
     ```
 
