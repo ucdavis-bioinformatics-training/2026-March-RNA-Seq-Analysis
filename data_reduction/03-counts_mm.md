@@ -124,7 +124,7 @@ In this section, we will collate all of the count data into one file for analysi
 
 1. The alignment exercise and the above exercise to generate the counts table used a subset of the original data. But we are goint to transfer the counts table generated using the full data set and samples.txt to your computer using scp or winSCP, or copy/paste from cat [sometimes doesn't work],  
 
-    In Mac/Linux, users can use scp. Windows users use WinSCP. In a new shell session on my laptop. **NOT logged into tadpole. Replace my [your_username] with your username.**
+    In Mac/Linux, users can use scp. Windows users use WinSCP. In a new shell session on my laptop. **NOT logged into tadpole. Replace my [your_username] with your actual user name.**
 
     ```bash
     mkdir -p ~/rnaseq_workshop
