@@ -240,10 +240,8 @@ ln -s /share/workshop/mrnaseq_workshop/jli/rnaseq_example/01-HTS_Preproc /share/
     *	Name — This is the name of the target transcript provided in the input transcript database (FASTA file).
     *	Length — This is the length of the target transcript in nucleotides.
     *	EffectiveLength — This is the computed effective length of the target transcript. It takes into account all factors being modeled that will effect the probability of sampling fragments from this transcript, including the fragment length distribution and sequence-specific and gc-fragment bias (if they are being modeled).
-    *	TPM — This is salmon’s estimate of the relative abundance of this transcript in units of Transcripts Per Million (TPM). TPM is the recommended relative abundance measure to use for downstream analysis. For differential expression analysis at gene level, it is recommended to use __tximport__ package to aggregate the transcript quantification to gene level.
+    *	TPM — This is salmon’s estimate of the relative abundance of this transcript in units of Transcripts Per Million (TPM). TPM is the recommended relative abundance measure to use for downstream analysis.
     *	NumReads — This is salmon’s estimate of the number of reads mapping to each transcript that was quantified. It is an “estimate” insofar as it is the expected number of reads that have originated from each transcript given the structure of the uniquely mapping and multi-mapping reads and the relative abundance estimates for each transcript.
-
-    Gene level quantification can be found in the quant.genes.sf file.
 
     For differential expression analysis at gene level, we recommend using __tximport__ or __tximeta__ R package to import salmon quantification results. __tximport__ allows the correction for potential differential isoform usage (ie. changes to the average transcript length across samples) by calculating an offset or to calculate a bias corrected counts.
 
