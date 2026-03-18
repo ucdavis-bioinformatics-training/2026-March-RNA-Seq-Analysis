@@ -83,14 +83,14 @@ download.file("https://raw.githubusercontent.com/ucdavis-bioinformatics-training
 
 ## Download the data file for the workshop document and preview/open it
 
-This is the the counts file generated after running [Generating counts tables](https://ucdavis-bioinformatics-training.github.io/2023-June-RNA-Seq-Analysis/data_reduction/counts).
+This is the the counts file generated after running [Generating counts tables](https://ucdavis-bioinformatics-training.github.io/2026-March-RNA-Seq-Analysis/data_reduction/03-counts_mm).
 
 I've also uploaded to the github repo. In the R console run the following command.
 ```r
 download.file("https://raw.githubusercontent.com/ucdavis-bioinformatics-training/2026-March-RNA-Seq-Analysis/master/datasets/rnaseq_workshop_counts.txt", "rnaseq_workshop_counts.txt")
 ```
 
-The file with information from BioMart is too big to be hosted on github, so please use the command line approach to download it from the computing cluster
+The file with information from BioMart is too big to be hosted on github, so please use the command line approach to download it from the computing cluster.
 
 ```bash
 scp [your_username]@tadpole.genomecenter.ucdavis.edu:/share/workshop/mrnaseq_workshop/Data/ensembl_mm_115.txt .
