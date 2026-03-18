@@ -248,7 +248,7 @@ What does stranded and unstranded mean? Which is better and why? [Stranded vs Un
 
     Windows users can use WinSCP or FileZilla, both of which are GUI based.
 
-    Mac/Linux users can use scp. In a new shell session on my laptop. **NOT logged into tadpole. Replace [your_username] with your username.**
+    Mac/Linux users can use scp. In a new shell session on my laptop. **NOT logged into tadpole. Replace [your_username] with your actual user name.**
 
     ```bash
     mkdir ~/rnaseq_workshop
