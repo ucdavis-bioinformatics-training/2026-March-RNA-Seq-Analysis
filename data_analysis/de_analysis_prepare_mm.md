@@ -78,7 +78,7 @@ Note about pathview: As of June 2022, the version of pathview on Bioconductor is
 In the R console run the following command
 
 ```r
-download.file("https://raw.githubusercontent.com/ucdavis-bioinformatics-training/2025-June-RNA-Seq-Analysis/master/data_analysis/DE_Analysis_mm.Rmd", "DE_Analysis_mm.Rmd")
+download.file("https://raw.githubusercontent.com/ucdavis-bioinformatics-training/2026-March-RNA-Seq-Analysis/master/data_analysis/DE_Analysis_mm.Rmd", "DE_Analysis_mm.Rmd")
 ```
 
 ## Download the data file for the workshop document and preview/open it
@@ -87,16 +87,16 @@ This is the the counts file generated after running [Generating counts tables](h
 
 I've also uploaded to the github repo. In the R console run the following command.
 ```r
-download.file("https://raw.githubusercontent.com/ucdavis-bioinformatics-training/2025-June-RNA-Seq-Analysis/master/datasets/rnaseq_workshop_counts.txt", "rnaseq_workshop_counts.txt")
+download.file("https://raw.githubusercontent.com/ucdavis-bioinformatics-training/2026-March-RNA-Seq-Analysis/master/datasets/rnaseq_workshop_counts.txt", "rnaseq_workshop_counts.txt")
 ```
 
 ```r
-download.file("https://raw.githubusercontent.com/ucdavis-bioinformatics-training/2025-June-RNA-Seq-Analysis/master/datasets/ensembl_mm_114.txt", "ensembl_mm_114.txt")
+download.file("https://raw.githubusercontent.com/ucdavis-bioinformatics-training/2026-March-RNA-Seq-Analysis/master/datasets/ensembl_mm_115.txt", "ensembl_mm_115.txt")
 ```
 
 #### For the salmon datasets
 
 ```r
-download.file("https://raw.githubusercontent.com/ucdavis-bioinformatics-training/2025-June-RNA-Seq-Analysis/master/datasets/rnaseq_salmon_workshop_counts.txt", "rnaseq_salmon_workshop_counts.txt")
+download.file("https://raw.githubusercontent.com/ucdavis-bioinformatics-training/2026-March-RNA-Seq-Analysis/master/datasets/rnaseq_salmon_workshop_counts.txt", "rnaseq_salmon_workshop_counts.txt")
 ```
 
