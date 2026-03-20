@@ -329,6 +329,6 @@ pheatmap::pheatmap(t(MEs), scale = "row", clustering_distance_cols = "euclidean"
 		color = colorRampPalette(c("blue", "white", "red"))(50), fontsize = 8)
 ```
 
-<img src="WGCNA_files/figure-html/unnamed-chunk-12-1.png" alt="" width="70%" />
+<img src="WGCNA_files/figure-html/unnamed-chunk-12-1.png" alt="" width="80%" />
 
 
