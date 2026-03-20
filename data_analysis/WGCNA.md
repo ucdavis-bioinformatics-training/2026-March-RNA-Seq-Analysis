@@ -304,20 +304,8 @@ Let's take a look at the relationship among the modules by using the module eige
 MEs <- orderMEs(nwk$MEs)
 cor_MEs <- cor(MEs)
 heatmap.2(cor_MEs, col = colorRampPalette(c("blue", "white", "red"))(50),
-	key = T, key.title = "Correlation", key.xlat = "Value",
+	key = T, key.title = "Correlation", key.xlab = "Value",
 	trace = "none", main  = "Module Eigengene Correlation")
-```
-
-```
-## Warning in plot.window(...): "key.xlat" is not a graphical parameter
-```
-
-```
-## Warning in plot.xy(xy, type, ...): "key.xlat" is not a graphical parameter
-```
-
-```
-## Warning in title(...): "key.xlat" is not a graphical parameter
 ```
 
 ![](WGCNA_files/figure-html/unnamed-chunk-11-1.png)<!-- -->
@@ -339,6 +327,6 @@ pheatmap::pheatmap(t(MEs), scale = "row", clustering_distance_cols = "euclidean"
 		color = colorRampPalette(c("blue", "white", "red"))(50), fontsize = 8)
 ```
 
-![](WGCNA_files/figure-html/unnamed-chunk-12-1.png)<!-- -->
+<img src="WGCNA_files/figure-html/unnamed-chunk-12-1.png" alt="" width="70%" />
 
 
