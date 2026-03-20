@@ -178,7 +178,7 @@ expr <- expr[, vars > quantile(vars, 0.75)]
 
 The soft-thresholding power parameter is crucial for network construction. The goal of a good soft-thresholding power is to achive scale-free topology while maintaining reasonable connectivity within the network. Higher powers lead to higher suppression of weak correlations and create sparser networks with fewer but stronger connections. The optimal soft-thresholding power is dataset dependent because it reflects the underlying correlation structure of the data.
 
-The recommended selection criteria is to achieve $R^2$ $g \ge f$ 0.8-0.9, as well as a reasonable mean connectivity (< 200-300). The function __pickSoftThreshold__ scans through a series of soft-thresholding powers and produces the corresponding network characteristics that can be used for the selection.
+The recommended selection criteria is to achieve R^2^ $g \ge f$ 0.8-0.9, as well as a reasonable mean connectivity (< 200-300). The function __pickSoftThreshold__ scans through a series of soft-thresholding powers and produces the corresponding network characteristics that can be used for the selection.
 
 
 ``` r
@@ -208,7 +208,7 @@ sft <- pickSoftThreshold(expr, dataIsExpr = T, corFnc = WGCNA::cor, networkType 
 ## 15    20   0.9050 -2.01          0.987    3.00      0.84   62.3
 ```
 
-Let's plot $R^2$.
+Let's plot R^2^.
 
 
 ``` r
