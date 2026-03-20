@@ -324,10 +324,11 @@ pheatmap::pheatmap(t(MEs), scale = "row", clustering_distance_cols = "euclidean"
 	clustering_method = "average", annotation_col = metadata %>%
 	dplyr::select(`self-administration`, challenge), 
 	border_color = NA, treeheight_row = 20, treeheight_col = 20,
+	cellheight = 12,
 	annotation_colors = ann_colors, show_colnames = F,
 		color = colorRampPalette(c("blue", "white", "red"))(50), fontsize = 8)
 ```
 
-<img src="WGCNA_files/figure-html/unnamed-chunk-12-1.png" alt="" width="80%" />
+<img src="WGCNA_files/figure-html/unnamed-chunk-12-1.png" alt="" width="70%" />
 
 
