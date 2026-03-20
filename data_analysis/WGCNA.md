@@ -323,7 +323,7 @@ ann_colors <- list(`self-administration` = admin_colors,
 pheatmap::pheatmap(t(MEs), scale = "row", clustering_distance_cols = "euclidean",
 	clustering_method = "average", annotation_col = metadata %>%
 	dplyr::select(`self-administration`, challenge), 
-	border_color = NA, treeheight_row = 20, treeheight_col = 20,
+	border_color = NA, treeheight_row = 20, treeheight_col = 30,
 	cellheight = 12,
 	annotation_colors = ann_colors, show_colnames = F,
 		color = colorRampPalette(c("blue", "white", "red"))(50), fontsize = 8)
