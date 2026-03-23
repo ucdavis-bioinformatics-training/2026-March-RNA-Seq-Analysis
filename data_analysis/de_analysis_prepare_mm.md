@@ -67,6 +67,31 @@ if (!any(rownames(installed.packages()) == "ggrepel")){
 }
 library(ggrepel)
 
+if (!any(rownames(installed.packages()) == "WGCNA")){
+  BiocManager::install("WGNCA")
+}
+library(WGCNA)
+
+if (!any(rownames(installed.packages()) == "pheatmap")){
+  BiocManager::install("pheatmap")
+}
+library(pheatmap)
+
+if (!any(rownames(installed.packages()) == "viridisLite")){
+  install.packages("viridisLite")
+}
+library(viridisLite)
+
+if (!any(rownames(installed.packages()) == "matrixStats")){
+  install.packages("matrixStats")
+}
+library(matrixStats)
+
+if (!any(rownames(installed.packages()) == "gplots")){
+  install.packages("gplots")
+}
+library(gplots)
+
 if (!any(rownames(installed.packages()) == "devtools")){
   BiocManager::install("devtools")
 }
