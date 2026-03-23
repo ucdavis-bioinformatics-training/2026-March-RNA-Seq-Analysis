@@ -92,6 +92,11 @@ if (!any(rownames(installed.packages()) == "gplots")){
 }
 library(gplots)
 
+if (!any(rownames(installed.packages()) == "impute")){
+  install.packages("impute")
+}
+library(impute)
+
 if (!any(rownames(installed.packages()) == "devtools")){
   BiocManager::install("devtools")
 }
