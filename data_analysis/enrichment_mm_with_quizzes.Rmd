@@ -79,9 +79,6 @@ function showResults(myq, qc, rc){
 }
 </script>
 
-
-# GO AND KEGG Enrichment Analysis
-
 Load libraries
 ```{r, message = FALSE}
 library(topGO)
@@ -159,12 +156,12 @@ rna.pp.terms <- genesInTerm(GOdata)[["GO:0010556"]] # get genes associated with 
 p.values.in <- geneList[names(geneList) %in% rna.pp.terms]
 p.values.out <- geneList[!(names(geneList) %in% rna.pp.terms)]
 plot.ecdf(p.values.in, verticals = T, do.points = F, col = "red", lwd = 2, xlim = c(0,1),
-          main = "Empirical Distribution of DE P-Values by Annotation with 'regulation of macromolecule biosynthetic process'",
-          cex.main = 0.9, xlab = "p", ylab = "Probability(P-Value <= p)")
+          main = "Empirical Distribution of DE P-Values\nby Annotation with 'regulation of macromolecule biosynthetic process'",
+          cex.main = 0.7, xlab = "p", ylab = "Probability(P-Value <= p)")
 ecdf.out <- ecdf(p.values.out)
 xx <- unique(sort(c(seq(0, 1, length = 201), knots(ecdf.out))))
 lines(xx, ecdf.out(xx), col = "black", lwd = 2)
-legend("bottomright", legend = c("Genes Annotated with 'regulation of macromolecule biosynthetic process'", "Genes not annotated with 'regulation of macromolecule biosynthetic process'"), lwd = 2, col = 2:1, cex = 0.9)
+legend("bottomright", legend = c("Genes Annotated with 'regulation of macromolecule biosynthetic process'", "Genes not annotated with 'regulation of macromolecule biosynthetic process'"), lwd = 2, col = 2:1, cex = 0.7)
 ```
 
 versus the probability distributions of p-values that are and that are not annotated with the term GO:0045071 "negative regulation of viral genome replication" (54 genes) p-value 3.3x10-9.
@@ -174,12 +171,12 @@ rna.pp.terms <- genesInTerm(GOdata)[["GO:0045071"]] # get genes associated with 
 p.values.in <- geneList[names(geneList) %in% rna.pp.terms]
 p.values.out <- geneList[!(names(geneList) %in% rna.pp.terms)]
 plot.ecdf(p.values.in, verticals = T, do.points = F, col = "red", lwd = 2, xlim = c(0,1),
-          main = "Empirical Distribution of DE P-Values by Annotation with 'negative regulation of viral genome replication'",
-          cex.main = 0.9, xlab = "p", ylab = "Probability(P-Value <= p)")
+          main = "Empirical Distribution of DE P-Values\nby Annotation with 'negative regulation of viral genome replication'",
+          cex.main = 0.7, xlab = "p", ylab = "Probability(P-Value <= p)")
 ecdf.out <- ecdf(p.values.out)
 xx <- unique(sort(c(seq(0, 1, length = 201), knots(ecdf.out))))
 lines(xx, ecdf.out(xx), col = "black", lwd = 2)
-legend("bottomright", legend = c("Genes Annotated with 'negative regulation of viral genome replication'", "Genes Not Annotated with 'negative regulation of viral genome replication'"), lwd = 2, col = 2:1, cex = 0.9)
+legend("bottomright", legend = c("Genes Annotated with 'negative regulation of viral genome replication'", "Genes Not Annotated with 'negative regulation of viral genome replication'"), lwd = 2, col = 2:1, cex = 0.7)
 ```
 
 
@@ -336,18 +333,24 @@ Core enrichment genes = subset of genes that contribute most to the enrichment r
 dotplot(KEGG.results)
 ```
 
+### Tree plot of KEGG enrichment
+Pathways are clustered based on the degree of overlap in their member genes. Circles are sized based on the number of genes in the pathway and colored based on the adjusted p-value.
+```{r, fig.width = 22, fig.height = 12}
+tmp <- pairwise_termsim(KEGG.results)
+treeplot(tmp, fontsize_cladelab = 5)
+```
+
 ### Pathview plot of log fold changes on KEGG diagram
 
 ```{r}
 foldChangeList <- DE$logFC
-xx <- as.list(org.Mm.egENSEMBL2EG)
-names(foldChangeList) <- xx[sapply(strsplit(DE$Gene,split="\\."),"[[", 1L)]
+names(foldChangeList) <- DE$ENTREZID
 head(foldChangeList)
 
 mmu04015 <- pathview(gene.data  = foldChangeList,
                      pathway.id = "mmu04015",
                      species    = "mmu",
-                     limit      = list(gene=max(abs(foldChangeList)), cpd=1))
+                     limit      = list(gene = 6))
 ```
 
 ```{r pressure, echo=FALSE, out.width = '100%'}
@@ -364,6 +367,8 @@ plotdat$nice.name <- gsub(" - Mus musculus (house mouse)", "", plotdat$Descripti
 
 ggplot(plotdat, aes(x = -log10(p.adjust), y = reorder(nice.name, -log10(p.adjust)), fill = setSize)) + geom_bar(stat = "identity") + labs(x = "-log10(P-Value)", y = NULL, fill = "# Genes") + scale_fill_gradient(low = "red", high = "blue")
 ```
+
+
 ## Quiz 2
 
 <div id="quiz2" class="quiz"></div>

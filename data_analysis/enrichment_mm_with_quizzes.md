@@ -79,9 +79,6 @@ function showResults(myq, qc, rc){
 }
 </script>
 
-
-# GO AND KEGG Enrichment Analysis
-
 Load libraries
 
 ``` r
@@ -140,8 +137,8 @@ head(geneList)
 ```
 
 ```
-##        67241        18795       104718        12521        94212        12772 
-## 4.109222e-16 7.877908e-16 1.094372e-15 2.224431e-15 2.256262e-15 2.467758e-15
+##        67241        18795       104718        12772        94212        12521 
+## 3.870865e-16 1.279281e-15 1.599773e-15 1.765621e-15 1.868737e-15 2.865790e-15
 ```
 
 ``` r
@@ -308,50 +305,50 @@ head(tab, 15)
 ## 1  GO:0140242
 ## 2  GO:0140236
 ## 3  GO:0002181
-## 4  GO:0006002
-## 5  GO:0002218
+## 4  GO:0002218
+## 5  GO:0006002
 ## 6  GO:0045071
 ## 7  GO:0032760
 ## 8  GO:0035458
 ## 9  GO:0050680
 ## 10 GO:0036151
 ## 11 GO:0072672
-## 12 GO:1901224
-## 13 GO:0001525
-## 14 GO:0045944
-## 15 GO:0042776
+## 12 GO:0045944
+## 13 GO:1901224
+## 14 GO:0001525
+## 15 GO:0050830
 ##                                                                  Term Annotated
 ## 1                                          translation at postsynapse        48
 ## 2                                           translation at presynapse        47
 ## 3                                             cytoplasmic translation       193
-## 4                              fructose 6-phosphate metabolic process        12
-## 5                                activation of innate immune response       336
+## 4                                activation of innate immune response       336
+## 5                              fructose 6-phosphate metabolic process        12
 ## 6                     negative regulation of viral genome replication        44
 ## 7             positive regulation of tumor necrosis factor production       102
 ## 8                                cellular response to interferon-beta        59
 ## 9                negative regulation of epithelial cell proliferation       110
 ## 10                          phosphatidylcholine acyl-chain remodeling         9
 ## 11                                           neutrophil extravasation        15
-## 12 positive regulation of non-canonical NF-kappaB signal transduction        52
-## 13                                                       angiogenesis       401
-## 14          positive regulation of transcription by RNA polymerase II       928
-## 15             proton motive force-driven mitochondrial ATP synthesis        64
+## 12          positive regulation of transcription by RNA polymerase II       928
+## 13 positive regulation of non-canonical NF-kappaB signal transduction        52
+## 14                                                       angiogenesis       401
+## 15                        defense response to Gram-positive bacterium        74
 ##    Significant Expected raw.p.value
-## 1           48       48     1.3e-08
-## 2           47       47     2.5e-08
-## 3          193      193     3.3e-07
-## 4           12       12     1.8e-06
-## 5          336      336     1.9e-06
-## 6           44       44     2.5e-06
-## 7          102      102     4.3e-06
-## 8           59       59     1.1e-05
-## 9          110      110     2.2e-05
-## 10           9        9     3.0e-05
-## 11          15       15     4.3e-05
-## 12          52       52     5.2e-05
-## 13         401      401     5.5e-05
-## 14         928      928     7.5e-05
-## 15          64       64     8.5e-05
+## 1           48       48     9.6e-09
+## 2           47       47     2.0e-08
+## 3          193      193     5.1e-07
+## 4          336      336     2.0e-06
+## 5           12       12     2.2e-06
+## 6           44       44     3.1e-06
+## 7          102      102     1.1e-05
+## 8           59       59     1.5e-05
+## 9          110      110     1.9e-05
+## 10           9        9     3.1e-05
+## 11          15       15     5.0e-05
+## 12         928      928     5.0e-05
+## 13          52       52     5.9e-05
+## 14         401      401     8.7e-05
+## 15          74       74     0.00010
 ```
 
 * Annotated: number of genes (in our gene list) that are annotated with the term
@@ -369,12 +366,12 @@ rna.pp.terms <- genesInTerm(GOdata)[["GO:0010556"]] # get genes associated with 
 p.values.in <- geneList[names(geneList) %in% rna.pp.terms]
 p.values.out <- geneList[!(names(geneList) %in% rna.pp.terms)]
 plot.ecdf(p.values.in, verticals = T, do.points = F, col = "red", lwd = 2, xlim = c(0,1),
-          main = "Empirical Distribution of DE P-Values by Annotation with 'regulation of macromolecule biosynthetic process'",
-          cex.main = 0.9, xlab = "p", ylab = "Probability(P-Value <= p)")
+          main = "Empirical Distribution of DE P-Values\nby Annotation with 'regulation of macromolecule biosynthetic process'",
+          cex.main = 0.7, xlab = "p", ylab = "Probability(P-Value <= p)")
 ecdf.out <- ecdf(p.values.out)
 xx <- unique(sort(c(seq(0, 1, length = 201), knots(ecdf.out))))
 lines(xx, ecdf.out(xx), col = "black", lwd = 2)
-legend("bottomright", legend = c("Genes Annotated with 'regulation of macromolecule biosynthetic process'", "Genes not annotated with 'regulation of macromolecule biosynthetic process'"), lwd = 2, col = 2:1, cex = 0.9)
+legend("bottomright", legend = c("Genes Annotated with 'regulation of macromolecule biosynthetic process'", "Genes not annotated with 'regulation of macromolecule biosynthetic process'"), lwd = 2, col = 2:1, cex = 0.7)
 ```
 
 ![](enrichment_mm_with_quizzes_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
@@ -387,12 +384,12 @@ rna.pp.terms <- genesInTerm(GOdata)[["GO:0045071"]] # get genes associated with 
 p.values.in <- geneList[names(geneList) %in% rna.pp.terms]
 p.values.out <- geneList[!(names(geneList) %in% rna.pp.terms)]
 plot.ecdf(p.values.in, verticals = T, do.points = F, col = "red", lwd = 2, xlim = c(0,1),
-          main = "Empirical Distribution of DE P-Values by Annotation with 'negative regulation of viral genome replication'",
-          cex.main = 0.9, xlab = "p", ylab = "Probability(P-Value <= p)")
+          main = "Empirical Distribution of DE P-Values\nby Annotation with 'negative regulation of viral genome replication'",
+          cex.main = 0.7, xlab = "p", ylab = "Probability(P-Value <= p)")
 ecdf.out <- ecdf(p.values.out)
 xx <- unique(sort(c(seq(0, 1, length = 201), knots(ecdf.out))))
 lines(xx, ecdf.out(xx), col = "black", lwd = 2)
-legend("bottomright", legend = c("Genes Annotated with 'negative regulation of viral genome replication'", "Genes Not Annotated with 'negative regulation of viral genome replication'"), lwd = 2, col = 2:1, cex = 0.9)
+legend("bottomright", legend = c("Genes Annotated with 'negative regulation of viral genome replication'", "Genes Not Annotated with 'negative regulation of viral genome replication'"), lwd = 2, col = 2:1, cex = 0.7)
 ```
 
 ![](enrichment_mm_with_quizzes_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
@@ -512,7 +509,7 @@ resultFisher <- runTest(GOdata, algorithm = "elim", statistic = "fisher")
 ## 
 ## 			 -- Elim Algorithm -- 
 ## 
-## 		 the algorithm is scoring 12785 nontrivial nodes
+## 		 the algorithm is scoring 12783 nontrivial nodes
 ## 		 parameters: 
 ## 			 test statistic: fisher
 ## 			 cutOff: 0.01
@@ -545,7 +542,7 @@ resultFisher <- runTest(GOdata, algorithm = "elim", statistic = "fisher")
 
 ```
 ## 
-## 	 Level 14:	213 nodes to be scored	(105 eliminated genes)
+## 	 Level 14:	212 nodes to be scored	(105 eliminated genes)
 ```
 
 ```
@@ -565,52 +562,52 @@ resultFisher <- runTest(GOdata, algorithm = "elim", statistic = "fisher")
 
 ```
 ## 
-## 	 Level 10:	1670 nodes to be scored	(1602 eliminated genes)
+## 	 Level 10:	1667 nodes to be scored	(1570 eliminated genes)
 ```
 
 ```
 ## 
-## 	 Level 9:	1881 nodes to be scored	(2085 eliminated genes)
+## 	 Level 9:	1881 nodes to be scored	(2065 eliminated genes)
 ```
 
 ```
 ## 
-## 	 Level 8:	1802 nodes to be scored	(2886 eliminated genes)
+## 	 Level 8:	1802 nodes to be scored	(2992 eliminated genes)
 ```
 
 ```
 ## 
-## 	 Level 7:	1578 nodes to be scored	(3988 eliminated genes)
+## 	 Level 7:	1578 nodes to be scored	(3803 eliminated genes)
 ```
 
 ```
 ## 
-## 	 Level 6:	1281 nodes to be scored	(4825 eliminated genes)
+## 	 Level 6:	1283 nodes to be scored	(4395 eliminated genes)
 ```
 
 ```
 ## 
-## 	 Level 5:	794 nodes to be scored	(6015 eliminated genes)
+## 	 Level 5:	794 nodes to be scored	(6051 eliminated genes)
 ```
 
 ```
 ## 
-## 	 Level 4:	369 nodes to be scored	(6418 eliminated genes)
+## 	 Level 4:	369 nodes to be scored	(6896 eliminated genes)
 ```
 
 ```
 ## 
-## 	 Level 3:	98 nodes to be scored	(7074 eliminated genes)
+## 	 Level 3:	98 nodes to be scored	(7482 eliminated genes)
 ```
 
 ```
 ## 
-## 	 Level 2:	17 nodes to be scored	(7158 eliminated genes)
+## 	 Level 2:	17 nodes to be scored	(8363 eliminated genes)
 ```
 
 ```
 ## 
-## 	 Level 1:	1 nodes to be scored	(7166 eliminated genes)
+## 	 Level 1:	1 nodes to be scored	(8367 eliminated genes)
 ```
 
 ``` r
@@ -620,20 +617,20 @@ head(tab)
 ```
 
 ```
-##        GO.ID                                 Term Annotated Significant
-## 1 GO:0140242           translation at postsynapse        48          44
-## 2 GO:0140236            translation at presynapse        47          43
-## 3 GO:0002181              cytoplasmic translation       193         144
-## 4 GO:0046718        symbiont entry into host cell        72          58
-## 5 GO:0001525                         angiogenesis       401         278
-## 6 GO:0035458 cellular response to interferon-beta        59          48
-##   Expected raw.p.value
-## 1    28.35     5.2e-07
-## 2    27.76     8.1e-07
-## 3   113.98     3.8e-06
-## 4    42.52     8.6e-05
-## 5   236.82     0.00016
-## 6    34.84     0.00022
+##        GO.ID                          Term Annotated Significant Expected
+## 1 GO:0140242    translation at postsynapse        48          44    28.28
+## 2 GO:0140236     translation at presynapse        47          43    27.70
+## 3 GO:0002181       cytoplasmic translation       193         145   113.73
+## 4 GO:0046718 symbiont entry into host cell        72          58    42.43
+## 5 GO:0001525                  angiogenesis       401         278   236.29
+## 6 GO:0042742 defense response to bacterium       215         152   126.69
+##   raw.p.value
+## 1     4.7e-07
+## 2     7.4e-07
+## 3     1.5e-06
+## 4     7.9e-05
+## 5     0.00014
+## 6     0.00021
 ```
 * Annotated: number of genes (in our gene list) that are annotated with the term
 * Significant: Number of significantly DE genes annotated with that term (i.e. genes where geneList = 1)
@@ -724,8 +721,8 @@ head(geneList.KEGG)
 ```
 
 ```
-##    67241    18795   104718    12521    94212    12772 
-## 46.54613 42.60381 38.54763 37.46686 36.69806 36.23871
+##    67241    18795   104718    12772    94212    12521 
+## 46.00282 44.85466 38.61553 37.04900 36.33552 35.85499
 ```
 
 
@@ -777,26 +774,26 @@ head(outdat)
 ## mmu05167 mmu05167 Kaposi sarcoma-associated herpesvirus infection     165
 ## mmu05171 mmu05171                  Coronavirus disease - COVID-19     192
 ##          enrichmentScore      NES       pvalue     p.adjust       qvalue rank
-## mmu05168       0.4932393 1.969290 7.746185e-08 2.413723e-05 1.409035e-05 2285
-## mmu04142       0.4476375 1.871709 1.424025e-07 2.413723e-05 1.409035e-05 2313
-## mmu04970       0.6675045 2.204193 7.118902e-07 5.229088e-05 3.052534e-05 1115
-## mmu04015       0.4736077 1.890515 6.815805e-07 5.229088e-05 3.052534e-05 2568
-## mmu05167       0.4665886 1.875059 8.946845e-07 5.229088e-05 3.052534e-05 3321
-## mmu05171       0.4511957 1.844313 9.255023e-07 5.229088e-05 3.052534e-05 3262
+## mmu05168       0.4895189 1.956983 7.754194e-08 1.314336e-05 7.550137e-06 2371
+## mmu04142       0.4474206 1.871147 6.003833e-08 1.314336e-05 7.550137e-06 2324
+## mmu04970       0.6706343 2.214822 4.943146e-07 3.153650e-05 1.811598e-05 1121
+## mmu04015       0.4841912 1.931775 5.581682e-07 3.153650e-05 1.811598e-05 2338
+## mmu05167       0.4716380 1.896833 4.418871e-07 3.153650e-05 1.811598e-05 2533
+## mmu05171       0.4602924 1.880125 3.086057e-07 3.153650e-05 1.811598e-05 3196
 ##                            leading_edge
-## mmu05168 tags=37%, list=17%, signal=31%
+## mmu05168 tags=38%, list=17%, signal=32%
 ## mmu04142 tags=31%, list=17%, signal=26%
 ## mmu04970  tags=34%, list=8%, signal=31%
-## mmu04015 tags=36%, list=19%, signal=30%
-## mmu05167 tags=42%, list=24%, signal=33%
-## mmu05171 tags=48%, list=24%, signal=37%
+## mmu04015 tags=35%, list=17%, signal=29%
+## mmu05167 tags=35%, list=18%, signal=29%
+## mmu05171 tags=48%, list=23%, signal=37%
 ##                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            core_enrichment
-## mmu05168                                                                                                                                                                                 Pou2f2/C3/H2-Q6/Pilrb2/Ptpn11/Bcl2/Ppp1cb/Daxx/Nxf1/Sp100/Apaf1/Pilra/Tyk2/Ifih1/Sting1/Rnasel/Pilrb1/H2-Q7/Ccl2/H2-K1/Stat2/Itga5/Bad/Bst2/Traf3/Casp8/Tnfsf14/H2-Q4/Hcfc2/H2-T10/Eif2ak2/Oas1a/Tnfrsf14/Fas/H2-Ob/Jak2/Rigi/Eif2b2/Pik3r2/Tlr9/Nfkb1/Socs3/B2m/Oas2/Pik3cd/H2-T24/Tap2/Ikbke/Mavs/H2-D1/Oas3/Nfkbia/Irf3/Akt3/Hcfc1/Irf7/Tapbpl/Tlr2/Chuk/Traf2
-## mmu04142                                                                                              Dmxl2/Npc2/Slc29a1/Galns/Lamtor4/Igf2r/Ap2a2/Atp6v1b2/Atp6v1a/Gpr155/Acp2/Ctsc/Mitf/Ctsh/Slc36a1/Lamp2/Ctsb/Slc11a1/Acp5/Glb1/Tpcn2/Hexa/Psap/Clta/Slc29a3/Naga/Asah1/Manba/Ncoa7/Tti1/Atp6v0c/Slc36a4/Lamp1/Gnptab/Borcs6/Scarb2/Laptm4a/Slc15a4/Cltb/Cln3/Npc1/Hexb/Slc17a5/Galc/Gnptg/Arsg/Rraga/Ctsl/Ap5s1/Atp6v1g1/Tlr9/Borcs5/Gla/Vps13c/Slc2a6/Ap2s1/Aga/Vps26b/Tcirg1/Cln5/Clcn7/Hgsnat/Tfeb/Ap3m1/Ctns/Vps16/Wdr7/Kxd1/Lamtor2/Atp6v1d/Tlr7
-## mmu04970                                                                                                                                                                                                                                                                                                                                                                                                                                                  Plcb1/Gnaq/Adrb1/Adcy7/Slc12a2/Atp2b1/Bst1/Atp1a1/Adrb2/Calm1/Lyz2/Itpr1/Prkacb/Cst3/Prkcb/Adcy9
-## mmu04015                                                                                                                                                                                                         Plcb1/Sipa1l1/Gnaq/P2ry1/Tiam1/Met/Adcy7/Itgb1/Pdgfb/Rassf5/Afdn/Vegfc/Raf1/Itgal/Insr/Fpr1/Prkd2/Thbs1/Vasp/Rasgrp2/Evl/Rras/Cdh1/Calm1/Rap1b/Sipa1l3/Rapgef5/Pdgfrb/Prkcb/Itgb2/Adcy9/Rap1a/Ralb/Map2k1/Pik3r2/Prkci/Calml4/Crk/Pik3cd/Hgf/Rgs14/Kras/Rapgef1/Vav3/Arap3/Tln2/Akt3/Actg1/Fgfr1/Csf1r/Lpar4/Lcp2/Adcy4/Apbb1ip/Akt1/Rac1
-## mmu05167                                                                                                                        C3/H2-Q6/Pik3r6/Ccr1/Nfatc3/Pdgfb/Rcan1/Gng2/Rb1/Raf1/Tcf7l2/Tyk2/E2f2/Calm1/H2-Q7/H2-K1/Itpr1/Stat2/Il6st/Traf3/Casp8/H2-Q4/H2-T10/Eif2ak2/Hck/Fas/Gngt2/Cdk6/Ppp3r1/Jak2/Map2k1/Pik3r2/Cd200r1/Calml4/Nfkb1/Pik3cd/H2-T24/Stat3/Kras/Ikbke/H2-D1/Ppp3ca/Nfkbia/Gng10/Irf3/Akt3/Irf7/Nfatc1/E2f3/Chuk/Traf2/Gng12/Ppp3cb/Akt1/Hif1a/Gnb1/Rac1/Fos/Map2k6/Rps27a/Itpr3/Mapk3/Hras/Mapk11/Ccr3/Angpt2/Cycs/Ifnar1/Ccnd1/Bid
-## mmu05171 C3/F13a1/Rpl3l/Vwf/Tyk2/C1ra/Isg15/Ifih1/Sting1/Rps9/Nrp1/Ccl2/Rpl28/Rplp0/Stat2/Il6st/C4b/Rpl7a/Rpl41/Ace/Traf3/Mx1/Prkcb/Cxcl10/Eif2ak2/Oas1a/Rpl31/Rpl32/Rpl10a/Rigi/C5ar1/Rpl22/Pik3r2/Mx2/Rpl10/Nfkb1/Oas2/Pik3cd/Rps12/Stat3/Ikbke/Rps26/Mavs/Rpl29/Rps27l/Rpsa/Rps5/Rps18/Rpl13/Rpl14/Oas3/Nfkbia/Irf3/Rpl3/Rpl23a/Rpl15/Nlrp3/Rpl18/Tlr2/Chuk/Rps6/Rpl27a/Tlr7/Rpl11/Rps7/Rps17/Rps28/Rps3/Rps20/Rpl35/Tnf/Rpl37/Fos/Rps4x/Rpl19/Rpl17/Rpl4/Rpl34/Rpl39/Rps27a/Rps2/Rpl6/Rpl36a/Mapk3/Rps15a/Rpl9/Mapk11/Rsl24d1/Rpl13a/Rpl21/Rpl7/Ifnar1
+## mmu05168                                                                                                                                                                            Pou2f2/C3/H2-Q6/Ptpn11/Bcl2/Pilrb2/Ppp1cb/Nxf1/Daxx/Tyk2/Apaf1/Sp100/Pilra/Ifih1/Sting1/H2-K1/Rnasel/Pilrb1/H2-Q7/Ccl2/Stat2/Bad/Itga5/Traf3/Bst2/Tnfsf14/Casp8/H2-Q4/Hcfc2/H2-T10/Eif2ak2/Oas1a/Tnfrsf14/B2m/Fas/Jak2/Nfkb1/H2-Ob/Eif2b2/Rigi/Pik3cd/H2-D1/Pik3r2/Tlr9/Socs3/Tap2/H2-T24/Ikbke/Mavs/Oas2/Nfkbia/Hcfc1/Irf3/Akt3/Tapbpl/Oas3/Irf7/Akt1/Chuk/Traf2/Tlr2
+## mmu04142                                                                                              Dmxl2/Npc2/Slc29a1/Galns/Lamtor4/Igf2r/Ap2a2/Atp6v1b2/Ctsb/Atp6v1a/Gpr155/Ctsh/Ctsc/Acp2/Lamp2/Mitf/Slc36a1/Slc11a1/Psap/Acp5/Glb1/Hexa/Tpcn2/Clta/Naga/Slc29a3/Asah1/Lamp1/Ncoa7/Manba/Slc36a4/Tti1/Atp6v0c/Scarb2/Laptm4a/Borcs6/Gnptab/Slc15a4/Cltb/Cln3/Hexb/Slc17a5/Npc1/Galc/Gnptg/Arsg/Rraga/Ctsl/Ap5s1/Tlr9/Atp6v1g1/Gla/Borcs5/Vps13c/Tcirg1/Ap2s1/Slc2a6/Aga/Vps26b/Cln5/Clcn7/Hgsnat/Tfeb/Ctns/Ap3m1/Vps16/Tlr7/Kxd1/Wdr7/Lamtor2/Atp6v1d
+## mmu04970                                                                                                                                                                                                                                                                                                                                                                                                                                                  Plcb1/Gnaq/Adcy7/Adrb1/Slc12a2/Atp2b1/Atp1a1/Bst1/Adrb2/Calm1/Lyz2/Itpr1/Cst3/Prkcb/Prkacb/Adcy9
+## mmu04015                                                                                                                                                                                                                    Plcb1/Sipa1l1/Gnaq/Tiam1/Adcy7/P2ry1/Met/Rassf5/Itgb1/Itgal/Pdgfb/Afdn/Vegfc/Raf1/Fpr1/Insr/Prkd2/Rasgrp2/Thbs1/Vasp/Evl/Rap1b/Rras/Calm1/Cdh1/Sipa1l3/Itgb2/Rapgef5/Prkcb/Pdgfrb/Adcy9/Rap1a/Ralb/Map2k1/Pik3cd/Pik3r2/Calml4/Prkci/Crk/Rgs14/Hgf/Rapgef1/Kras/Vav3/Arap3/Tln2/Actg1/Akt3/Csf1r/Fgfr1/Lcp2/Akt1/Apbb1ip/Lpar4
+## mmu05167                                                                                                                                                                                                C3/H2-Q6/Pik3r6/Nfatc3/Ccr1/Pdgfb/Raf1/Rcan1/Rb1/Gng2/Tcf7l2/Tyk2/E2f2/Calm1/H2-K1/H2-Q7/Itpr1/Il6st/Stat2/Traf3/Hck/Casp8/H2-Q4/H2-T10/Eif2ak2/Fas/Cdk6/Jak2/Ppp3r1/Gngt2/Nfkb1/Map2k1/Stat3/Pik3cd/H2-D1/Pik3r2/Calml4/Cd200r1/Kras/H2-T24/Ppp3ca/Ikbke/Nfkbia/Irf3/Gng10/Akt3/Nfatc1/Irf7/E2f3/Akt1/Chuk/Traf2/Gng12/Ppp3cb/Rac1/Fos/Hif1a/Gnb1
+## mmu05171 C3/F13a1/Rpl3l/Vwf/Tyk2/C1ra/Rps9/Isg15/Ifih1/Sting1/Rplp0/Nrp1/Rpl28/Ccl2/Il6st/Stat2/C4b/Rpl7a/Ace/Rpl41/Traf3/Prkcb/Mx1/Cxcl10/Rpl32/Eif2ak2/Oas1a/Rpl31/Rpl10a/Nfkb1/Rpl10/Stat3/Rpl22/Rigi/C5ar1/Pik3cd/Pik3r2/Mx2/Rps12/Rps5/Rps26/Rpsa/Rpl13/Rpl29/Rps18/Ikbke/Mavs/Rpl14/Rps27l/Oas2/Rpl3/Nfkbia/Irf3/Rpl23a/Oas3/Rpl18/Rpl15/Rpl27a/Tlr7/Rps6/Nlrp3/Rps7/Rps3/Rpl11/Chuk/Rps17/Tlr2/Rps20/Rps28/Rps4x/Rpl35/Rpl4/Rpl37/Fos/Tnf/Rpl17/Rpl19/Rpl6/Rps27a/Rpl34/Rps2/Rpl39/Mapk3/Rpl9/Rps15a/Rpl36a/Rpl7/Mapk11/Rsl24d1/Rpl21/Rpl13a/Ifnar1
 ```
 
 Gene set enrichment analysis output includes the following columns:
@@ -829,34 +826,35 @@ dotplot(KEGG.results)
 
 ![](enrichment_mm_with_quizzes_files/figure-html/unnamed-chunk-12-1.png)<!-- -->
 
+### Tree plot of KEGG enrichment
+Pathways are clustered based on the degree of overlap in their member genes. Circles are sized based on the number of genes in the pathway and colored based on the adjusted p-value.
+
+``` r
+tmp <- pairwise_termsim(KEGG.results)
+treeplot(tmp, fontsize_cladelab = 5)
+```
+
+![](enrichment_mm_with_quizzes_files/figure-html/unnamed-chunk-13-1.png)<!-- -->
+
 ### Pathview plot of log fold changes on KEGG diagram
 
 
 ``` r
 foldChangeList <- DE$logFC
-xx <- as.list(org.Mm.egENSEMBL2EG)
-names(foldChangeList) <- xx[sapply(strsplit(DE$Gene,split="\\."),"[[", 1L)]
+names(foldChangeList) <- DE$ENTREZID
 head(foldChangeList)
 ```
 
 ```
-##     67241     18795    104718     12521     94212     12772 
-## -2.258712  3.084665 -2.006122 -2.446067 -1.767470  2.024618
+##     67241     18795    104718     12772     94212     12521 
+## -2.255446  3.084390 -2.006080  2.020877 -1.767503 -2.445780
 ```
 
 ``` r
 mmu04015 <- pathview(gene.data  = foldChangeList,
                      pathway.id = "mmu04015",
                      species    = "mmu",
-                     limit      = list(gene=max(abs(foldChangeList)), cpd=1))
-```
-
-```
-## Info: Downloading xml files for mmu04015, 1/1 pathways..
-```
-
-```
-## Info: Downloading png files for mmu04015, 1/1 pathways..
+                     limit      = list(gene = 6))
 ```
 
 ```
@@ -864,7 +862,7 @@ mmu04015 <- pathview(gene.data  = foldChangeList,
 ```
 
 ```
-## Info: Working in directory /Users/jli/Jessie/Research/BioInfo/Courses/Mar-2026
+## Info: Working in directory C:/Users/bpdurbin/OneDrive - UC Davis Health/work_stuff/2026-March-RNA-Seq-Analysis/data_analysis
 ```
 
 ```
@@ -885,7 +883,9 @@ plotdat$nice.name <- gsub(" - Mus musculus (house mouse)", "", plotdat$Descripti
 ggplot(plotdat, aes(x = -log10(p.adjust), y = reorder(nice.name, -log10(p.adjust)), fill = setSize)) + geom_bar(stat = "identity") + labs(x = "-log10(P-Value)", y = NULL, fill = "# Genes") + scale_fill_gradient(low = "red", high = "blue")
 ```
 
-![](enrichment_mm_with_quizzes_files/figure-html/unnamed-chunk-14-1.png)<!-- -->
+![](enrichment_mm_with_quizzes_files/figure-html/unnamed-chunk-15-1.png)<!-- -->
+
+
 ## Quiz 2
 
 <div id="quiz2" class="quiz"></div>
@@ -900,9 +900,9 @@ myQuestions2 = [
   {
     question: "How many pathways have an adjusted p-value less than 0.05?",
     answers: {
-      a: "112",
+      a: "131",
       b: "339",
-      c: "146"
+      c: "150"
     },
     correctAnswer: "a"
   },
@@ -935,16 +935,19 @@ sessionInfo()
 ```
 
 ```
-## R version 4.5.2 (2025-10-31)
-## Platform: aarch64-apple-darwin20
-## Running under: macOS Tahoe 26.0.1
+## R version 4.5.3 (2026-03-11 ucrt)
+## Platform: x86_64-w64-mingw32/x64
+## Running under: Windows 11 x64 (build 26100)
 ## 
 ## Matrix products: default
-## BLAS:   /System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libBLAS.dylib 
-## LAPACK: /Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/lib/libRlapack.dylib;  LAPACK version 3.12.1
+##   LAPACK version 3.12.1
 ## 
 ## locale:
-## [1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+## [1] LC_COLLATE=English_United States.utf8 
+## [2] LC_CTYPE=English_United States.utf8   
+## [3] LC_MONETARY=English_United States.utf8
+## [4] LC_NUMERIC=C                          
+## [5] LC_TIME=English_United States.utf8    
 ## 
 ## time zone: America/Los_Angeles
 ## tzcode source: internal
@@ -955,7 +958,7 @@ sessionInfo()
 ## 
 ## other attached packages:
 ##  [1] Rgraphviz_2.54.0       dplyr_1.2.0            ggplot2_4.0.2         
-##  [4] enrichplot_1.30.5      pathview_1.50.0        clusterProfiler_4.18.4
+##  [4] enrichplot_1.30.5      pathview_1.31.3        clusterProfiler_4.18.4
 ##  [7] org.Mm.eg.db_3.22.0    topGO_2.62.0           SparseM_1.84-2        
 ## [10] GO.db_3.22.0           AnnotationDbi_1.72.0   IRanges_2.44.0        
 ## [13] S4Vectors_0.48.0       Biobase_2.70.0         graph_1.88.1          
@@ -964,39 +967,39 @@ sessionInfo()
 ## loaded via a namespace (and not attached):
 ##   [1] RColorBrewer_1.1-3      rstudioapi_0.18.0       jsonlite_2.0.0         
 ##   [4] tidydr_0.0.6            magrittr_2.0.4          ggtangle_0.1.1         
-##   [7] farver_2.1.2            rmarkdown_2.30          fs_1.6.6               
-##  [10] vctrs_0.7.1             memoise_2.0.1           RCurl_1.98-1.17        
-##  [13] ggtree_4.0.4            htmltools_0.5.9         gridGraphics_0.5-1     
+##   [7] farver_2.1.2            rmarkdown_2.30          fs_2.0.0               
+##  [10] vctrs_0.7.2             memoise_2.0.1           RCurl_1.98-1.18        
+##  [13] ggtree_4.0.5            htmltools_0.5.9         gridGraphics_0.5-1     
 ##  [16] sass_0.4.10             bslib_0.10.0            htmlwidgets_1.6.4      
-##  [19] plyr_1.8.9              cachem_1.1.0            igraph_2.2.1           
-##  [22] lifecycle_1.0.5         pkgconfig_2.0.3         Matrix_1.7-4           
+##  [19] plyr_1.8.9              cachem_1.1.0            igraph_2.2.2           
+##  [22] lifecycle_1.0.5         pkgconfig_2.0.3         Matrix_1.7-5           
 ##  [25] R6_2.6.1                fastmap_1.2.0           gson_0.1.0             
 ##  [28] digest_0.6.39           aplot_0.2.9             ggnewscale_0.5.2       
 ##  [31] patchwork_1.3.2         RSQLite_2.4.6           org.Hs.eg.db_3.22.0    
-##  [34] labeling_0.4.3          httr_1.4.7              polyclip_1.10-7        
-##  [37] compiler_4.5.2          bit64_4.6.0-1           fontquiver_0.2.1       
+##  [34] labeling_0.4.3          httr_1.4.8              polyclip_1.10-7        
+##  [37] compiler_4.5.3          bit64_4.6.0-1           fontquiver_0.2.1       
 ##  [40] withr_3.0.2             S7_0.2.1                BiocParallel_1.44.0    
-##  [43] DBI_1.2.3               ggforce_0.5.0           R.utils_2.13.0         
-##  [46] MASS_7.3-65             rappdirs_0.3.4          tools_4.5.2            
+##  [43] DBI_1.3.0               ggforce_0.5.0           R.utils_2.13.0         
+##  [46] MASS_7.3-65             rappdirs_0.3.4          tools_4.5.3            
 ##  [49] otel_0.2.0              ape_5.8-1               scatterpie_0.2.6       
 ##  [52] R.oo_1.27.1             glue_1.8.0              nlme_3.1-168           
 ##  [55] GOSemSim_2.36.0         cluster_2.1.8.2         reshape2_1.4.5         
-##  [58] fgsea_1.37.4            gtable_0.3.6            R.methodsS3_1.8.2      
-##  [61] tidyr_1.3.2             data.table_1.18.2.1     XVector_0.50.0         
-##  [64] ggrepel_0.9.6           pillar_1.11.1           stringr_1.6.0          
-##  [67] yulab.utils_0.2.4       splines_4.5.2           tweenr_2.0.3           
-##  [70] treeio_1.34.0           lattice_0.22-9          bit_4.6.0              
-##  [73] tidyselect_1.2.1        fontLiberation_0.1.0    Biostrings_2.78.0      
-##  [76] knitr_1.51              fontBitstreamVera_0.1.1 Seqinfo_1.0.0          
-##  [79] xfun_0.56               matrixStats_1.5.0       KEGGgraph_1.70.0       
-##  [82] stringi_1.8.7           lazyeval_0.2.2          ggfun_0.2.0            
-##  [85] yaml_2.3.12             evaluate_1.0.5          codetools_0.2-20       
-##  [88] gdtools_0.5.0           tibble_3.3.1            qvalue_2.42.0          
-##  [91] ggplotify_0.1.3         cli_3.6.5               systemfonts_1.3.1      
-##  [94] jquerylib_0.1.4         Rcpp_1.1.1              png_0.1-8              
-##  [97] XML_3.99-0.22           parallel_4.5.2          blob_1.3.0             
-## [100] DOSE_4.4.0              bitops_1.0-9            tidytree_0.4.7         
-## [103] ggiraph_0.9.6           scales_1.4.0            purrr_1.2.1            
-## [106] crayon_1.5.3            rlang_1.1.7             cowplot_1.2.0          
-## [109] fastmatch_1.1-8         KEGGREST_1.50.0
+##  [58] fgsea_1.36.2            snow_0.4-4              gtable_0.3.6           
+##  [61] R.methodsS3_1.8.2       tidyr_1.3.2             data.table_1.18.2.1    
+##  [64] XVector_0.50.0          ggrepel_0.9.8           pillar_1.11.1          
+##  [67] stringr_1.6.0           yulab.utils_0.2.4       splines_4.5.3          
+##  [70] tweenr_2.0.3            treeio_1.34.0           lattice_0.22-9         
+##  [73] bit_4.6.0               tidyselect_1.2.1        fontLiberation_0.1.0   
+##  [76] Biostrings_2.78.0       knitr_1.51              fontBitstreamVera_0.1.1
+##  [79] Seqinfo_1.0.0           xfun_0.57               matrixStats_1.5.0      
+##  [82] KEGGgraph_1.70.0        stringi_1.8.7           lazyeval_0.2.2         
+##  [85] ggfun_0.2.0             yaml_2.3.12             evaluate_1.0.5         
+##  [88] codetools_0.2-20        gdtools_0.5.0           tibble_3.3.1           
+##  [91] qvalue_2.42.0           ggplotify_0.1.3         cli_3.6.5              
+##  [94] systemfonts_1.3.2       jquerylib_0.1.4         Rcpp_1.1.1             
+##  [97] png_0.1-9               XML_3.99-0.23           parallel_4.5.3         
+## [100] blob_1.3.0              DOSE_4.4.0              bitops_1.0-9           
+## [103] tidytree_0.4.7          ggiraph_0.9.6           scales_1.4.0           
+## [106] purrr_1.2.1             crayon_1.5.3            rlang_1.1.7            
+## [109] cowplot_1.2.0           fastmatch_1.1-8         KEGGREST_1.50.0
 ```
