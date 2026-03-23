@@ -236,13 +236,13 @@ When building a new pipeline, it is almost always a good idea to use a small sub
 
     <div class="output">
     total 20M
-    drwxrwsr-x 2 jli 2029    7 May 27 00:40 .
-    drwxrwsr-x 4 jli 2029    5 May 27 00:39 ..
-    -rw-rw-r-- 1 jli 2029  40K May 27 00:40 mouse_110_WT_C.stats.json
-    -rw-rw-r-- 1 jli 2029 4.7M May 27 00:40 mouse_110_WT_C.stats_R1.fastq.gz
-    -rw-rw-r-- 1 jli 2029 5.0M May 27 00:40 mouse_110_WT_C.stats_R2.fastq.gz
-    -rw-rw-r-- 1 jli 2029 4.7M May 27 00:39 mouse_110_WT_C.subset_R1.fastq.gz
-    -rw-rw-r-- 1 jli 2029 5.0M May 27 00:39 mouse_110_WT_C.subset_R2.fastq.gz
+    drwxrwsr-x  2 jli workshop    7 Mar 22 21:32 .
+    drwxrwsr-x 12 jli workshop   24 Mar 17 21:36 ..
+    -rw-rw-r--  1 jli workshop  71K Mar 22 21:32 mouse_110_WT_C.stats.json
+    -rw-rw-r--  1 jli workshop 4.7M Mar 22 21:32 mouse_110_WT_C.stats_R1.fastq.gz
+    -rw-rw-r--  1 jli workshop 5.0M Mar 22 21:32 mouse_110_WT_C.stats_R2.fastq.gz
+    -rw-rw-r--  1 jli workshop 4.7M Mar 22 21:30 mouse_110_WT_C.subset_R1.fastq.gz
+    -rw-rw-r--  1 jli workshop 5.0M Mar 22 21:30 mouse_110_WT_C.subset_R2.fastq.gz
 
     </div>
 
