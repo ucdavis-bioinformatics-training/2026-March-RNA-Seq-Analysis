@@ -62,6 +62,10 @@ if (!any(rownames(installed.packages()) == "ggplot2")){
 }
 library(ggplot2)
 
+if (!any(rownames(installed.packages()) == "ComplexHeatmap")){
+    BiocManager::install("ComplexHeatmap")
+}
+library(ggplot2)
 
 if (!any(rownames(installed.packages()) == "devtools")){
   BiocManager::install("devtools")
