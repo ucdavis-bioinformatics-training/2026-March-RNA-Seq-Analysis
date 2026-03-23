@@ -82,14 +82,12 @@ function showResults(myq, qc, rc){
 
 # Differential Gene Expression Analysis in R
 
-* Differential Gene Expression (DGE) between conditions is determined from count data
+* Differential Expression (DE) between conditions is determined from count data
 * Generally speaking differential expression analysis is performed in a very similar manner to metabolomics, proteomics, or DNA microarrays, once normalization and transformations have been performed.
 
 A lot of RNA-seq analysis has been done in R and so there are many packages available to analyze and view this data. Two of the most commonly used are:
 * DESeq2, developed by Simon Anders (also created htseq) in Wolfgang Huber’s group at EMBL
 * edgeR and Voom (extension to Limma [microarrays] for RNA-seq), developed out of Gordon Smyth’s group from the Walter and Eliza Hall Institute of Medical Research in Australia
-
-http://bioconductor.org/packages/release/BiocViews.html#___RNASeq
 
 ## Differential Expression Analysis with Limma-Voom
 
@@ -110,7 +108,7 @@ Together they allow fast, flexible, and powerful analyses of RNA-Seq data.  Limm
 2. Calculate normalization factors (sample-specific adjustments)
 3. Filter genes (uninteresting genes, e.g. unexpressed)
 4. Account for expression-dependent variability by transformation, weighting, or modeling
-5. Fitting a linear model
+5. Fitting a statistical model
 6. Perform statistical comparisons of interest (using contrasts)
 7. Adjust for multiple testing, Benjamini-Hochberg (BH) or q-value
 8. Check results for confidence
@@ -205,12 +203,12 @@ d0 <- DGEList(counts)
 **1a\.** Read in Annotation
 
 ``` r
-anno <- read.delim("ensembl_mm_115.txt",as.is=T)
+anno <- read.delim("ensembl_mm_115.txt")
 dim(anno)
 ```
 
 ```
-## [1] 278396     12
+## [1] 78334     9
 ```
 
 ``` r
@@ -218,20 +216,13 @@ head(anno)
 ```
 
 ```
-##       Gene.stable.ID Gene.stable.ID.version Transcript.stable.ID
-## 1 ENSMUSG00000064336   ENSMUSG00000064336.1   ENSMUST00000082387
-## 2 ENSMUSG00000064337   ENSMUSG00000064337.1   ENSMUST00000082388
-## 3 ENSMUSG00000064338   ENSMUSG00000064338.1   ENSMUST00000082389
-## 4 ENSMUSG00000064339   ENSMUSG00000064339.1   ENSMUST00000082390
-## 5 ENSMUSG00000064340   ENSMUSG00000064340.1   ENSMUST00000082391
-## 6 ENSMUSG00000064341   ENSMUSG00000064341.1   ENSMUST00000082392
-##   Transcript.stable.ID.version
-## 1         ENSMUST00000082387.1
-## 2         ENSMUST00000082388.1
-## 3         ENSMUST00000082389.1
-## 4         ENSMUST00000082390.1
-## 5         ENSMUST00000082391.1
-## 6         ENSMUST00000082392.1
+##       Gene.stable.ID Gene.stable.ID.version
+## 1 ENSMUSG00000064336   ENSMUSG00000064336.1
+## 2 ENSMUSG00000064337   ENSMUSG00000064337.1
+## 3 ENSMUSG00000064338   ENSMUSG00000064338.1
+## 4 ENSMUSG00000064339   ENSMUSG00000064339.1
+## 5 ENSMUSG00000064340   ENSMUSG00000064340.1
+## 6 ENSMUSG00000064341   ENSMUSG00000064341.1
 ##                                                                  Gene.description
 ## 1   mitochondrially encoded tRNA phenylalanine [Source:MGI Symbol;Acc:MGI:102487]
 ## 2             mitochondrially encoded 12S rRNA [Source:MGI Symbol;Acc:MGI:102493]
@@ -246,13 +237,13 @@ head(anno)
 ## 4                       MT            1094          2675   mt-Rnr2
 ## 5                       MT            2676          2750    mt-Tl1
 ## 6                       MT            2751          3707    mt-Nd1
-##   Transcript.count Gene...GC.content      Gene.type
-## 1                1             30.88        Mt_tRNA
-## 2                1             35.81        Mt_rRNA
-## 3                1             39.13        Mt_tRNA
-## 4                1             35.40        Mt_rRNA
-## 5                1             44.00        Mt_tRNA
-## 6                1             37.62 protein_coding
+##   Gene...GC.content      Gene.type
+## 1             30.88        Mt_tRNA
+## 2             35.81        Mt_rRNA
+## 3             39.13        Mt_tRNA
+## 4             35.40        Mt_rRNA
+## 5             44.00        Mt_tRNA
+## 6             37.62 protein_coding
 ```
 
 ``` r
@@ -260,41 +251,34 @@ tail(anno)
 ```
 
 ```
-##            Gene.stable.ID Gene.stable.ID.version Transcript.stable.ID
-## 278391 ENSMUSG00000128341   ENSMUSG00000128341.1   ENSMUST00000286904
-## 278392 ENSMUSG00000026833  ENSMUSG00000026833.19   ENSMUST00000152415
-## 278393 ENSMUSG00000026833  ENSMUSG00000026833.19   ENSMUST00000113920
-## 278394 ENSMUSG00000026833  ENSMUSG00000026833.19   ENSMUST00000100244
-## 278395 ENSMUSG00000026833  ENSMUSG00000026833.19   ENSMUST00000102879
-## 278396 ENSMUSG00000026833  ENSMUSG00000026833.19   ENSMUST00000028177
-##        Transcript.stable.ID.version
-## 278391         ENSMUST00000286904.1
-## 278392         ENSMUST00000152415.2
-## 278393         ENSMUST00000113920.8
-## 278394        ENSMUST00000100244.10
-## 278395         ENSMUST00000102879.4
-## 278396        ENSMUST00000028177.11
-##                                                 Gene.description
-## 278391 predicted gene, 74850 [Source:MGI Symbol;Acc:MGI:7832428]
-## 278392        olfactomedin 1 [Source:MGI Symbol;Acc:MGI:1860437]
-## 278393        olfactomedin 1 [Source:MGI Symbol;Acc:MGI:1860437]
-## 278394        olfactomedin 1 [Source:MGI Symbol;Acc:MGI:1860437]
-## 278395        olfactomedin 1 [Source:MGI Symbol;Acc:MGI:1860437]
-## 278396        olfactomedin 1 [Source:MGI Symbol;Acc:MGI:1860437]
-##        Chromosome.scaffold.name Gene.start..bp. Gene.end..bp. Gene.name
-## 278391                        2        27998249      28083647   Gm74850
-## 278392                        2        28083004      28120748     Olfm1
-## 278393                        2        28083004      28120748     Olfm1
-## 278394                        2        28083004      28120748     Olfm1
-## 278395                        2        28083004      28120748     Olfm1
-## 278396                        2        28083004      28120748     Olfm1
-##        Transcript.count Gene...GC.content      Gene.type
-## 278391               13             49.39         lncRNA
-## 278392                5             52.31 protein_coding
-## 278393                5             52.31 protein_coding
-## 278394                5             52.31 protein_coding
-## 278395                5             52.31 protein_coding
-## 278396                5             52.31 protein_coding
+##           Gene.stable.ID Gene.stable.ID.version
+## 78329 ENSMUSG00000086560   ENSMUSG00000086560.3
+## 78330 ENSMUSG00000026835  ENSMUSG00000026835.16
+## 78331 ENSMUSG00000085693   ENSMUSG00000085693.3
+## 78332 ENSMUSG00000086425  ENSMUSG00000086425.10
+## 78333 ENSMUSG00000128341   ENSMUSG00000128341.1
+## 78334 ENSMUSG00000026833  ENSMUSG00000026833.19
+##                                                     Gene.description
+## 78329       predicted gene 13372 [Source:MGI Symbol;Acc:MGI:3650806]
+## 78330                  ficolin B [Source:MGI Symbol;Acc:MGI:1341158]
+## 78331       predicted gene 13371 [Source:MGI Symbol;Acc:MGI:3650807]
+## 78332 RIKEN cDNA F730016J06 gene [Source:MGI Symbol;Acc:MGI:2443559]
+## 78333      predicted gene, 74850 [Source:MGI Symbol;Acc:MGI:7832428]
+## 78334             olfactomedin 1 [Source:MGI Symbol;Acc:MGI:1860437]
+##       Chromosome.scaffold.name Gene.start..bp. Gene.end..bp.     Gene.name
+## 78329                        2        27907755      27922139       Gm13372
+## 78330                        2        27966390      27974897          Fcnb
+## 78331                        2        27981431      27989471       Gm13371
+## 78332                        2        27985443      28017753 F730016J06Rik
+## 78333                        2        27998249      28083647       Gm74850
+## 78334                        2        28083004      28120748         Olfm1
+##       Gene...GC.content      Gene.type
+## 78329             50.57         lncRNA
+## 78330             50.16 protein_coding
+## 78331             49.71         lncRNA
+## 78332             49.39         lncRNA
+## 78333             49.39         lncRNA
+## 78334             52.31 protein_coding
 ```
 
 ``` r
@@ -302,7 +286,7 @@ any(duplicated(anno$Gene.stable.ID))
 ```
 
 ```
-## [1] TRUE
+## [1] FALSE
 ```
 
 **1b\.** Derive experiment metadata from the sample names
@@ -398,10 +382,9 @@ submitButton1.addEventListener('click', function() {showResults(myQuestions1, qu
 
 ## 2. Preprocessing and Normalization factors
 
-In differential expression analysis, only sample-specific effects need to be normalized, we are NOT concerned with comparisons and quantification of absolute expression.
+In differential expression analysis, only sample-specific effects need to be normalized, we are NOT concerned with comparisons or quantification of absolute expression.
 
-* Sequence depth – is a sample specific effect and needs to be adjusted for.
-* RNA composition - finding a set of scaling factors for the library sizes that minimize the log-fold changes between the samples for most genes (edgeR uses a trimmed mean of M-values between each pair of sample)
+* Sequencing depth – is a sample specific effect and needs to be adjusted for.
 * GC content – is NOT sample-specific (except when it is)
 * Gene Length – is NOT sample-specific (except when it is)
 
@@ -449,8 +432,8 @@ We filter genes based on non-experimental factors to reduce the number of genes/
 
 Common filters include:
 1. to remove genes with a max value (X) of less then Y.
-2. to remove genes that are less than X normalized read counts (cpm) across a certain number of samples. Ex: rowSums(cpms <=1) < 3 , require at least 1 cpm in at least 3 samples to keep.
-3. A less used filter is for genes with minimum variance across all samples, so if a gene isn't changing (constant expression) its inherently not interesting therefor no need to test. 
+2. to remove genes with fewer than X normalized read counts (cpm) across a certain number of samples. Ex: rowSums(cpms <=1) < 3 , require at least 1 cpm in at least 3 samples to keep.
+3. A less used filter is for genes with minimum variance across all samples, so if a gene isn't changing (constant expression) its inherently not interesting therefore no need to test. 
 
 We will use the built in function filterByExpr() to filter low-expressed genes.  filterByExpr uses the experimental design to determine how many samples a gene needs to be expressed in to stay.  Importantly, once this number of samples has been determined, the group information is not used in filtering.
 
@@ -651,33 +634,33 @@ head(coef(fit))
 
 ```
 ##                       groupKOMIR150.C groupKOTet3.C  groupWT.C groupKOMIR150.NC
-## ENSMUSG00000098104.2        0.6560371    0.03429482  0.6544773        0.2363245
-## ENSMUSG00000033845.14       5.0014478    4.88820902  4.9762041        4.9539603
-## ENSMUSG00000102275.2       -1.6209700   -0.62621871 -1.1721122       -1.1617605
-## ENSMUSG00000136002.1       -1.7461067   -3.99545252 -4.6131303       -0.7318289
-## ENSMUSG00000025903.15       5.0173060    5.35253787  5.3640383        5.0940948
-## ENSMUSG00000033813.16       5.8352236    5.70902755  5.9065746        5.9006884
+## ENSMUSG00000098104.2        0.6526284    0.03429482  0.6532393        0.2375685
+## ENSMUSG00000033845.14       5.0016151    4.88820902  4.9763191        4.9523900
+## ENSMUSG00000102275.2       -1.6201198   -0.62621871 -1.1720818       -1.1545586
+## ENSMUSG00000136002.1       -1.7493604   -3.99545252 -4.6159572       -0.7272189
+## ENSMUSG00000025903.15       5.0171234    5.35253787  5.3640109        5.0940965
+## ENSMUSG00000033813.16       5.8351608    5.70902755  5.9065931        5.9005442
 ##                       groupKOTet3.NC groupWT.NC    mouse148    mouse158
-## ENSMUSG00000098104.2      -0.2822734  0.1134245 -1.33898270 -0.42883028
-## ENSMUSG00000033845.14      4.5265610  4.7763237 -0.13984160 -0.02919056
-## ENSMUSG00000102275.2      -1.4265845 -0.9891223 -0.38537293  0.23836966
-## ENSMUSG00000136002.1      -4.4575453 -3.6651306 -0.66251211 -0.15424681
-## ENSMUSG00000025903.15      5.2085615  5.1371754  0.09181363  0.07260540
-## ENSMUSG00000033813.16      5.7608657  5.8638175 -0.05969482 -0.08713153
+## ENSMUSG00000098104.2      -0.2821184  0.1145428 -1.33840403 -0.42895789
+## ENSMUSG00000033845.14      4.5265223  4.7763369 -0.13990047 -0.02911518
+## ENSMUSG00000102275.2      -1.4265519 -0.9890629 -0.38544983  0.23854851
+## ENSMUSG00000136002.1      -4.4575453 -3.6632783 -0.66305680 -0.15374347
+## ENSMUSG00000025903.15      5.2085162  5.1372357  0.09179694  0.07241885
+## ENSMUSG00000033813.16      5.7608104  5.8639603 -0.05982270 -0.08716224
 ##                          mouse183    mouse198 mouse206   mouse2670   mouse7530
-## ENSMUSG00000098104.2   0.05193844 -0.87582847       NA  0.09414792 -0.20972853
-## ENSMUSG00000033845.14 -0.31858410  0.01671850       NA  0.29766405  0.16221108
-## ENSMUSG00000102275.2   1.12910684  0.11780842       NA -0.29575034 -0.24662238
-## ENSMUSG00000136002.1  -1.93474800 -4.12230910       NA -1.47703923 -1.43537658
-## ENSMUSG00000025903.15  0.26701828  0.27392227       NA  0.12941984  0.04124329
-## ENSMUSG00000033813.16 -0.12534302  0.04655322       NA  0.24614711  0.17252327
+## ENSMUSG00000098104.2   0.05394482 -0.87462674       NA  0.09397075 -0.20998373
+## ENSMUSG00000033845.14 -0.31899349  0.01742017       NA  0.29782480  0.16239232
+## ENSMUSG00000102275.2   1.12573824  0.11338096       NA -0.29564348 -0.24659558
+## ENSMUSG00000136002.1  -1.93612914 -4.12401794       NA -1.47722621 -1.43556356
+## ENSMUSG00000025903.15  0.26706601  0.27411760       NA  0.12944314  0.04129559
+## ENSMUSG00000033813.16 -0.12524254  0.04666020       NA  0.24615453  0.17242085
 ##                       mouse7531   mouse7532   mouseH510   mouseH514
-## ENSMUSG00000098104.2         NA -0.84646876 -0.49821442 -0.21328852
-## ENSMUSG00000033845.14        NA -0.03448799 -0.02760486 -0.02368168
-## ENSMUSG00000102275.2         NA  1.05254458 -0.14143274 -0.21432284
-## ENSMUSG00000136002.1         NA  1.00608684  1.50357063 -0.46603361
-## ENSMUSG00000025903.15        NA  0.09981047  0.10133438  0.09990292
-## ENSMUSG00000033813.16        NA -0.01427406 -0.01832439 -0.02792657
+## ENSMUSG00000098104.2         NA -0.84758713 -0.49815413 -0.21385373
+## ENSMUSG00000033845.14        NA -0.03450118 -0.02768746 -0.02373714
+## ENSMUSG00000102275.2         NA  1.05248519 -0.14210643 -0.21498534
+## ENSMUSG00000136002.1         NA  1.00423457  1.50439685 -0.46944988
+## ENSMUSG00000025903.15        NA  0.09975017  0.10131238  0.09983154
+## ENSMUSG00000033813.16        NA -0.01441691 -0.01834807 -0.02829764
 ```
 
 Comparisons between groups (log fold-changes) are obtained as _contrasts_ of these fitted linear models:
@@ -731,7 +714,7 @@ tmp <- eBayes(tmp)
 
 ## 7. Multiple Testing Adjustment
 
-The TopTable. Adjust for multiple testing using method of Benjamini & Hochberg (BH), or its 'alias' fdr. "[Controlling the false discovery rate: a practical and powerful approach to multiple testing](http://www.jstor.org/stable/2346101).
+The topTable listing results for the most significant genes. Implements adjustment for multiple testing using method of Benjamini & Hochberg (BH). "[Controlling the false discovery rate: a practical and powerful approach to multiple testing](http://www.jstor.org/stable/2346101).
 
 here `n=Inf` says to produce the topTable for **all** genes. 
 
@@ -741,8 +724,10 @@ top.table <- topTable(tmp, adjust.method = "BH", sort.by = "P", n = Inf)
 
 ### Multiple Testing Correction
 
-Simply a must! Best choices are:
-  * [FDR](http://www.jstor.org/stable/2346101) (false discovery rate), such as Benjamini-Hochberg (1995).
+Multiple testing adjustment is the standard in the field and is required because testing thousands of genes makes the probability of having a raw p-value less than 0.05 for a gene that isn't truly different quite high.
+
+Two common adjustment methods are:
+  * [Benjamini-Hochberg](http://www.jstor.org/stable/2346101) (false discovery rate), such as Benjamini-Hochberg (1995).
   * [Qvalue](https://rss.onlinelibrary.wiley.com/doi/abs/10.1111/1467-9868.00346) - Storey (2002)
 
 The FDR (or qvalue) is a statement about the list and is no longer about the gene (pvalue). So a FDR of 0.05, says you expect 5% false positives among the list of genes with an FDR of 0.05 or less.
@@ -756,120 +741,326 @@ length(which(top.table$adj.P.Val < 0.05))
 ```
 
 ```
-## [1] 8642
+## [1] 8627
 ```
 
-## 8. Check your results for confidence.
+## 8. Add annotation and write results to a file
 
-You've conducted an experiment, you've seen a phenotype. Now check which genes are most differentially expressed (show the top 50)? Look up these top genes, their description and ensure they relate to your experiment/phenotype. 
+``` r
+top.table$Gene.stable.ID.version <- rownames(top.table)
+top.table <- left_join(top.table, anno, by = "Gene.stable.ID.version")
+top.table <- dplyr::select(top.table, Gene.stable.ID.version, Gene.name, everything())
+
+head(top.table)
+```
+
+```
+##   Gene.stable.ID.version Gene.name     logFC  AveExpr         t      P.Value
+## 1   ENSMUSG00000020608.8      Smc6 -2.255446 7.932239 -50.52234 3.870865e-16
+## 2  ENSMUSG00000051177.17     Plcb1  3.084390 5.208911  46.00282 1.279281e-15
+## 3   ENSMUSG00000033530.9     Ttc7b -2.006080 5.738811 -45.20312 1.599773e-15
+## 4  ENSMUSG00000049103.15      Ccr2  2.020877 9.789045  44.85466 1.765621e-15
+## 5  ENSMUSG00000027508.16      Pag1 -1.767503 8.248818 -44.65535 1.868737e-15
+## 6  ENSMUSG00000027215.14      Cd82 -2.445780 6.924080 -43.18180 2.865790e-15
+##      adj.P.Val        B     Gene.stable.ID
+## 1 6.446022e-12 27.54672 ENSMUSG00000020608
+## 2 6.446022e-12 25.94154 ENSMUSG00000051177
+## 3 6.446022e-12 25.97618 ENSMUSG00000033530
+## 4 6.446022e-12 26.05348 ENSMUSG00000049103
+## 5 6.446022e-12 26.00803 ENSMUSG00000027508
+## 6 8.237714e-12 25.54339 ENSMUSG00000027215
+##                                                                                      Gene.description
+## 1                         structural maintenance of chromosomes 6 [Source:MGI Symbol;Acc:MGI:1914491]
+## 2                                           phospholipase C, beta 1 [Source:MGI Symbol;Acc:MGI:97613]
+## 3                              tetratricopeptide repeat domain 7B [Source:MGI Symbol;Acc:MGI:2144724]
+## 4                                   C-C motif chemokine receptor 2 [Source:MGI Symbol;Acc:MGI:106185]
+## 5 phosphoprotein associated with glycosphingolipid microdomains 1 [Source:MGI Symbol;Acc:MGI:2443160]
+## 6                                                     CD82 antigen [Source:MGI Symbol;Acc:MGI:104651]
+##   Chromosome.scaffold.name Gene.start..bp. Gene.end..bp. Gene...GC.content
+## 1                       12        11315887      11369786             38.40
+## 2                        2       134627987     135317178             40.03
+## 3                       12       100267029     100487085             46.68
+## 4                        9       123901987     123913594             38.86
+## 5                        3         9752539       9898739             44.66
+## 6                        2        93249456      93293485             53.35
+##        Gene.type
+## 1 protein_coding
+## 2 protein_coding
+## 3 protein_coding
+## 4 protein_coding
+## 5 protein_coding
+## 6 protein_coding
+```
+
+``` r
+write.table(top.table, file = "WT.C_v_WT.NC.txt", row.names = F, sep = "\t", quote = F)
+```
+
+## 9. Check your results for confidence.
+
+You've conducted an experiment, you've seen a phenotype. Now check which genes are most differentially expressed (top rows of the table).  Look at their their description and ensure they relate to your experiment/phenotype. 
+
 
 ``` r
 head(top.table, 50)
 ```
 
 ```
-##                           logFC   AveExpr         t      P.Value    adj.P.Val
-## ENSMUSG00000020608.8  -2.258712  7.932239 -48.95237 4.109222e-16 6.291544e-12
-## ENSMUSG00000051177.17  3.084665  5.208911  46.54613 7.877908e-16 6.291544e-12
-## ENSMUSG00000033530.9  -2.006122  5.738811 -45.37570 1.094372e-15 6.291544e-12
-## ENSMUSG00000027215.14 -2.446067  6.924080 -42.94815 2.224431e-15 7.093569e-12
-## ENSMUSG00000027508.16 -1.767470  8.248818 -42.90086 2.256262e-15 7.093569e-12
-## ENSMUSG00000049103.15  2.024618  9.789045  42.60381 2.467758e-15 7.093569e-12
-## ENSMUSG00000023827.9  -1.885285  6.558337 -41.78873 3.165681e-15 7.799786e-12
-## ENSMUSG00000028885.9  -2.224818  7.157246 -41.01288 4.030662e-15 8.689604e-12
-## ENSMUSG00000020212.15 -2.094849  6.948277 -39.72488 6.080437e-15 1.165214e-11
-## ENSMUSG00000025701.13 -2.493539  5.532559 -39.38424 6.793785e-15 1.171724e-11
-## ENSMUSG00000038147.15  1.614627  7.236932  38.54763 8.957737e-15 1.404492e-11
-## ENSMUSG00000021614.17  5.632398  5.869198  37.46686 1.291771e-14 1.772238e-11
-## ENSMUSG00000030342.9  -3.271770  6.049595 -37.36934 1.335832e-14 1.772238e-11
-## ENSMUSG00000028497.13  1.640009  6.280253  36.69806 1.686738e-14 2.077940e-11
-## ENSMUSG00000041268.18  2.508880  5.023334  36.23871 1.983431e-14 2.280549e-11
-## ENSMUSG00000038807.20 -1.475783  9.084101 -35.82974 2.295142e-14 2.474020e-11
-## ENSMUSG00000023809.12 -3.201238  5.027938 -35.61991 2.475204e-14 2.511168e-11
-## ENSMUSG00000024548.12 -4.724467  3.910886 -35.24820 2.832605e-14 2.714107e-11
-## ENSMUSG00000042700.17 -1.789312  6.244766 -34.74684 3.405320e-14 3.091134e-11
-## ENSMUSG00000054676.18  2.233592  6.252724  34.57515 3.629144e-14 3.129592e-11
-## ENSMUSG00000024193.9  -1.507601  6.226163 -34.20702 4.164278e-14 3.420062e-11
-## ENSMUSG00000111792.2  -1.861067  5.927993 -34.06060 4.400208e-14 3.449563e-11
-## ENSMUSG00000052212.7   4.365162  6.439880  33.68608 5.071715e-14 3.803125e-11
-## ENSMUSG00000009739.19 -3.439300  3.339534 -33.10932 6.330944e-14 4.549574e-11
-## ENSMUSG00000030203.18 -4.034041  7.095270 -32.65324 7.564846e-14 5.218836e-11
-## ENSMUSG00000022637.12 -1.317551  7.420380 -31.94983 1.000373e-13 6.461632e-11
-## ENSMUSG00000102418.2  -2.505949  5.508368 -31.87186 1.032224e-13 6.461632e-11
-## ENSMUSG00000068329.13 -1.451052  6.841535 -31.81898 1.054446e-13 6.461632e-11
-## ENSMUSG00000044783.17 -1.582424  7.100040 -31.74480 1.086492e-13 6.461632e-11
-## ENSMUSG00000094626.2  -3.617866  3.554349 -30.71393 1.659029e-13 9.342846e-11
-## ENSMUSG00000045671.19 -3.190749  4.850229 -30.68485 1.679296e-13 9.342846e-11
-## ENSMUSG00000053559.14 -3.189753  3.975328 -30.37700 1.910923e-13 1.018320e-10
-## ENSMUSG00000102037.2  -3.091456  3.442990 -30.30455 1.970291e-13 1.018320e-10
-## ENSMUSG00000016498.11 -4.371675  2.399295 -30.26036 2.007472e-13 1.018320e-10
-## ENSMUSG00000008496.20 -1.332957  9.506884 -29.79697 2.446225e-13 1.193351e-10
-## ENSMUSG00000034731.12 -1.723808  6.782529 -29.75488 2.490905e-13 1.193351e-10
-## ENSMUSG00000033705.18  1.666956  7.294146  29.35688 2.959616e-13 1.372476e-10
-## ENSMUSG00000059325.15  2.349054  5.340871  29.30761 3.023952e-13 1.372476e-10
-## ENSMUSG00000020272.9  -1.145956 10.393677 -29.12497 3.275843e-13 1.393041e-10
-## ENSMUSG00000030413.8  -2.315161  6.646511 -28.99521 3.468499e-13 1.393041e-10
-## ENSMUSG00000020437.13 -1.033195 10.158225 -28.91105 3.599930e-13 1.393041e-10
-## ENSMUSG00000037820.16 -3.906758  7.273426 -28.89476 3.625989e-13 1.393041e-10
-## ENSMUSG00000021728.9   1.561025  8.263769  28.89349 3.628036e-13 1.393041e-10
-## ENSMUSG00000026923.16  1.969918  6.821046  28.85435 3.691510e-13 1.393041e-10
-## ENSMUSG00000024164.16  1.660368  9.850125  28.84785 3.702167e-13 1.393041e-10
-## ENSMUSG00000060044.9  -3.206799  5.180667 -28.83979 3.715422e-13 1.393041e-10
-## ENSMUSG00000000440.13 -3.184084  5.413320 -28.35393 4.617371e-13 1.694379e-10
-## ENSMUSG00000041754.6  -1.907904  5.511528 -28.26578 4.804940e-13 1.726475e-10
-## ENSMUSG00000021322.9   4.383952  4.278166  28.07561 5.238095e-13 1.843702e-10
-## ENSMUSG00000093739.2  -4.501288  1.975320 -27.97951 5.472804e-13 1.860122e-10
-##                              B
-## ENSMUSG00000020608.8  27.46936
-## ENSMUSG00000051177.17 26.43737
-## ENSMUSG00000033530.9  26.35957
-## ENSMUSG00000027215.14 25.78243
-## ENSMUSG00000027508.16 25.80754
-## ENSMUSG00000049103.15 25.71906
-## ENSMUSG00000023827.9  25.43657
-## ENSMUSG00000028885.9  25.21342
-## ENSMUSG00000020212.15 24.81234
-## ENSMUSG00000025701.13 24.59361
-## ENSMUSG00000038147.15 24.43141
-## ENSMUSG00000021614.17 23.80123
-## ENSMUSG00000030342.9  23.97152
-## ENSMUSG00000028497.13 23.79785
-## ENSMUSG00000041268.18 23.49463
-## ENSMUSG00000038807.20 23.46685
-## ENSMUSG00000023809.12 23.23792
-## ENSMUSG00000024548.12 22.21907
-## ENSMUSG00000042700.17 23.09635
-## ENSMUSG00000054676.18 23.03454
-## ENSMUSG00000024193.9  22.89752
-## ENSMUSG00000111792.2  22.82391
-## ENSMUSG00000052212.7  22.69831
-## ENSMUSG00000009739.19 21.65612
-## ENSMUSG00000030203.18 22.30120
-## ENSMUSG00000022637.12 21.98713
-## ENSMUSG00000102418.2  21.98001
-## ENSMUSG00000068329.13 21.95198
-## ENSMUSG00000044783.17 21.91386
-## ENSMUSG00000094626.2  21.11826
-## ENSMUSG00000045671.19 21.41665
-## ENSMUSG00000053559.14 21.06910
-## ENSMUSG00000102037.2  20.79644
-## ENSMUSG00000016498.11 19.62246
-## ENSMUSG00000008496.20 21.02367
-## ENSMUSG00000034731.12 21.07845
-## ENSMUSG00000033705.18 20.86540
-## ENSMUSG00000059325.15 20.91856
-## ENSMUSG00000020272.9  20.71009
-## ENSMUSG00000030413.8  20.75066
-## ENSMUSG00000020437.13 20.61369
-## ENSMUSG00000037820.16 20.72186
-## ENSMUSG00000021728.9  20.63626
-## ENSMUSG00000026923.16 20.65504
-## ENSMUSG00000024164.16 20.58863
-## ENSMUSG00000060044.9  20.70540
-## ENSMUSG00000000440.13 20.49562
-## ENSMUSG00000041754.6  20.45645
-## ENSMUSG00000021322.9  20.08922
-## ENSMUSG00000093739.2  18.59223
+##    Gene.stable.ID.version     Gene.name     logFC   AveExpr         t
+## 1    ENSMUSG00000020608.8          Smc6 -2.255446  7.932239 -50.52234
+## 2   ENSMUSG00000051177.17         Plcb1  3.084390  5.208911  46.00282
+## 3    ENSMUSG00000033530.9         Ttc7b -2.006080  5.738811 -45.20312
+## 4   ENSMUSG00000049103.15          Ccr2  2.020877  9.789045  44.85466
+## 5   ENSMUSG00000027508.16          Pag1 -1.767503  8.248818 -44.65535
+## 6   ENSMUSG00000027215.14          Cd82 -2.445780  6.924080 -43.18180
+## 7    ENSMUSG00000023827.9        Agpat4 -1.885349  6.558337 -42.19418
+## 8    ENSMUSG00000028885.9       Smpdl3b -2.222591  7.157246 -41.34969
+## 9   ENSMUSG00000020212.15          Mdm1 -2.094517  6.948277 -40.32362
+## 10  ENSMUSG00000025701.13         Alox5 -2.493506  5.532559 -39.18977
+## 11  ENSMUSG00000038147.15          Cd84  1.614521  7.236932  38.61553
+## 12  ENSMUSG00000038807.20      Rap1gap2 -1.475501  9.084101 -38.10006
+## 13   ENSMUSG00000030342.9           Cd9 -3.271726  6.049595 -37.45610
+## 14  ENSMUSG00000021614.17          Vcan  5.633748  5.869198  37.04900
+## 15  ENSMUSG00000028497.13         Hacd4  1.640309  6.280253  36.33552
+## 16  ENSMUSG00000041268.18         Dmxl2  2.509018  5.023334  35.85499
+## 17  ENSMUSG00000023809.12       Rps6ka2 -3.202249  5.027938 -35.41227
+## 18  ENSMUSG00000024548.12        Setbp1 -4.725038  3.910886 -35.17259
+## 19  ENSMUSG00000042700.17       Sipa1l1 -1.789441  6.244766 -34.54707
+## 20   ENSMUSG00000024193.9          Phf1 -1.507601  6.226163 -34.20939
+## 21  ENSMUSG00000054676.18 1600014C10Rik  2.232060  6.252724  34.03176
+## 22   ENSMUSG00000052212.7         Cd177  4.361877  6.439880  33.88249
+## 23  ENSMUSG00000030203.18        Dusp16 -4.027845  7.095270 -33.75995
+## 24   ENSMUSG00000111792.2       Gm33858 -1.860894  5.927993 -33.71310
+## 25  ENSMUSG00000020437.13         Myo1g -1.034009 10.158225 -33.15498
+## 26  ENSMUSG00000009739.19        Pou6f1 -3.439800  3.339534 -33.04975
+## 27   ENSMUSG00000020272.9         Stk10 -1.146535 10.393677 -32.75585
+## 28  ENSMUSG00000022637.12          Cblb -1.315623  7.420380 -32.37730
+## 29  ENSMUSG00000068329.13         Htra2 -1.450382  6.841535 -31.92893
+## 30  ENSMUSG00000044783.17         Hjurp -1.581144  7.100040 -31.91921
+## 31  ENSMUSG00000008496.20        Pou2f2 -1.335374  9.506884 -31.72927
+## 32   ENSMUSG00000102418.2       Sh2d1b1 -2.506409  5.508368 -31.68975
+## 33   ENSMUSG00000094626.2      Tmem121b -3.618551  3.554349 -30.58211
+## 34  ENSMUSG00000045671.19        Spred2 -3.191486  4.850229 -30.43867
+## 35  ENSMUSG00000016498.11      Pdcd1lg2 -4.372274  2.399295 -30.37044
+## 36   ENSMUSG00000102037.2       Bcl2a1a -3.093686  3.442990 -30.23203
+## 37  ENSMUSG00000053559.14         Smagp -3.190013  3.975328 -30.17834
+## 38  ENSMUSG00000034731.12          Dgkh -1.723301  6.782529 -30.02391
+## 39  ENSMUSG00000024164.16            C3  1.659072  9.850125  29.64685
+## 40  ENSMUSG00000037820.16          Tgm2 -3.900276  7.273426 -29.56710
+## 41  ENSMUSG00000037185.10         Krt80 -1.315903  9.421511 -29.55171
+## 42  ENSMUSG00000033705.18        Stard9  1.667527  7.294146  29.52584
+## 43   ENSMUSG00000030413.8       Pglyrp1 -2.312418  6.646511 -29.45155
+## 44  ENSMUSG00000026193.16           Fn1  4.376526 10.194917  29.26433
+## 45   ENSMUSG00000021728.9           Emb  1.561808  8.263769  28.97713
+## 46  ENSMUSG00000059325.15          Hopx  2.349516  5.340871  28.96349
+## 47   ENSMUSG00000060044.9        Tmem26 -3.206990  5.180667 -28.83488
+## 48  ENSMUSG00000026923.16        Notch1  1.969499  6.821046  28.83408
+## 49  ENSMUSG00000021242.10          Npc2  1.650083  8.853309  28.36747
+## 50  ENSMUSG00000000440.13         Pparg -3.183919  5.413320 -28.35358
+##         P.Value    adj.P.Val        B     Gene.stable.ID
+## 1  3.870865e-16 6.446022e-12 27.54672 ENSMUSG00000020608
+## 2  1.279281e-15 6.446022e-12 25.94154 ENSMUSG00000051177
+## 3  1.599773e-15 6.446022e-12 25.97618 ENSMUSG00000033530
+## 4  1.765621e-15 6.446022e-12 26.05348 ENSMUSG00000049103
+## 5  1.868737e-15 6.446022e-12 26.00803 ENSMUSG00000027508
+## 6  2.865790e-15 8.237714e-12 25.54339 ENSMUSG00000027215
+## 7  3.848040e-15 9.481022e-12 25.24721 ENSMUSG00000023827
+## 8  4.977964e-15 1.073187e-11 25.01517 ENSMUSG00000028885
+## 9  6.854510e-15 1.313553e-11 24.70336 ENSMUSG00000020212
+## 10 9.853799e-15 1.699485e-11 24.22203 ENSMUSG00000025701
+## 11 1.188930e-14 1.864133e-11 24.16024 ENSMUSG00000038147
+## 12 1.410540e-14 2.027298e-11 23.95512 ENSMUSG00000038807
+## 13 1.751934e-14 2.324278e-11 23.70968 ENSMUSG00000030342
+## 14 2.013029e-14 2.479908e-11 23.38163 ENSMUSG00000021614
+## 15 2.577384e-14 2.963476e-11 23.38407 ENSMUSG00000028497
+## 16 3.052368e-14 3.290262e-11 23.06239 ENSMUSG00000041268
+## 17 3.574172e-14 3.626103e-11 22.86878 ENSMUSG00000023809
+## 18 3.896123e-14 3.733135e-11 21.89341 ENSMUSG00000024548
+## 19 4.893060e-14 4.441611e-11 22.74488 ENSMUSG00000042700
+## 20 5.542816e-14 4.779847e-11 22.62303 ENSMUSG00000024193
+## 21 5.921386e-14 4.794824e-11 22.55677 ENSMUSG00000054676
+## 22 6.261112e-14 4.794824e-11 22.49966 ENSMUSG00000052212
+## 23 6.555675e-14 4.794824e-11 22.45503 ENSMUSG00000030203
+## 24 6.672220e-14 4.794824e-11 22.41499 ENSMUSG00000111792
+## 25 8.246014e-14 5.688760e-11 22.07579 ENSMUSG00000020437
+## 26 8.585272e-14 5.695007e-11 21.33816 ENSMUSG00000009739
+## 27 9.615013e-14 6.141857e-11 21.90420 ENSMUSG00000020272
+## 28 1.114183e-13 6.862969e-11 21.89103 ENSMUSG00000022637
+## 29 1.329597e-13 7.673422e-11 21.73326 ENSMUSG00000068329
+## 30 1.334740e-13 7.673422e-11 21.71944 ENSMUSG00000044783
+## 31 1.439608e-13 7.882542e-11 21.52935 ENSMUSG00000008496
+## 32 1.462523e-13 7.882542e-11 21.64040 ENSMUSG00000102418
+## 33 2.295098e-13 1.199502e-10 20.78831 ENSMUSG00000094626
+## 34 2.435845e-13 1.234898e-10 21.04861 ENSMUSG00000045671
+## 35 2.506025e-13 1.234898e-10 19.37699 ENSMUSG00000016498
+## 36 2.655183e-13 1.265831e-10 20.48676 ENSMUSG00000102037
+## 37 2.715589e-13 1.265831e-10 20.71483 ENSMUSG00000053559
+## 38 2.897742e-13 1.315194e-10 20.94126 ENSMUSG00000034731
+## 39 3.400182e-13 1.470399e-10 20.61779 ENSMUSG00000024164
+## 40 3.518042e-13 1.470399e-10 20.75982 ENSMUSG00000037820
+## 41 3.541280e-13 1.470399e-10 20.59773 ENSMUSG00000037185
+## 42 3.580724e-13 1.470399e-10 20.68724 ENSMUSG00000033705
+## 43 3.696661e-13 1.482705e-10 20.70037 ENSMUSG00000030413
+## 44 4.007142e-13 1.570708e-10 20.42168 ENSMUSG00000026193
+## 45 4.539314e-13 1.712107e-10 20.40535 ENSMUSG00000021728
+## 46 4.566413e-13 1.712107e-10 20.51799 ENSMUSG00000059325
+## 47 4.830657e-13 1.736329e-10 20.45259 ENSMUSG00000060044
+## 48 4.832365e-13 1.736329e-10 20.40033 ENSMUSG00000026923
+## 49 5.938798e-13 2.061252e-10 20.08476 ENSMUSG00000021242
+## 50 5.975683e-13 2.061252e-10 20.24884 ENSMUSG00000000440
+##                                                                                       Gene.description
+## 1                          structural maintenance of chromosomes 6 [Source:MGI Symbol;Acc:MGI:1914491]
+## 2                                            phospholipase C, beta 1 [Source:MGI Symbol;Acc:MGI:97613]
+## 3                               tetratricopeptide repeat domain 7B [Source:MGI Symbol;Acc:MGI:2144724]
+## 4                                    C-C motif chemokine receptor 2 [Source:MGI Symbol;Acc:MGI:106185]
+## 5  phosphoprotein associated with glycosphingolipid microdomains 1 [Source:MGI Symbol;Acc:MGI:2443160]
+## 6                                                      CD82 antigen [Source:MGI Symbol;Acc:MGI:104651]
+## 7                   1-acylglycerol-3-phosphate O-acyltransferase 4 [Source:MGI Symbol;Acc:MGI:1915512]
+## 8                    sphingomyelin phosphodiesterase, acid-like 3B [Source:MGI Symbol;Acc:MGI:1916022]
+## 9                                               MDM1 nuclear protein [Source:MGI Symbol;Acc:MGI:96951]
+## 10                                       arachidonate 5-lipoxygenase [Source:MGI Symbol;Acc:MGI:87999]
+## 11                                                    CD84 antigen [Source:MGI Symbol;Acc:MGI:1336885]
+## 12                                RAP1 GTPase activating protein 2 [Source:MGI Symbol;Acc:MGI:3028623]
+## 13                                                       CD9 antigen [Source:MGI Symbol;Acc:MGI:88348]
+## 14                                                         versican [Source:MGI Symbol;Acc:MGI:102889]
+## 15                                 3-hydroxyacyl-CoA dehydratase 4 [Source:MGI Symbol;Acc:MGI:1914025]
+## 16                                                      Dmx-like 2 [Source:MGI Symbol;Acc:MGI:2444630]
+## 17                      ribosomal protein S6 kinase, polypeptide 2 [Source:MGI Symbol;Acc:MGI:1342290]
+## 18                                           SET binding protein 1 [Source:MGI Symbol;Acc:MGI:1933199]
+## 19                signal-induced proliferation-associated 1 like 1 [Source:MGI Symbol;Acc:MGI:2443679]
+## 20                                              PHD finger protein 1 [Source:MGI Symbol;Acc:MGI:98647]
+## 21                                      RIKEN cDNA 1600014C10 gene [Source:MGI Symbol;Acc:MGI:1919494]
+## 22                                                   CD177 antigen [Source:MGI Symbol;Acc:MGI:1916141]
+## 23                                 dual specificity phosphatase 16 [Source:MGI Symbol;Acc:MGI:1917936]
+## 24                                           predicted gene, 33858 [Source:MGI Symbol;Acc:MGI:5593017]
+## 25                                                       myosin IG [Source:MGI Symbol;Acc:MGI:1927091]
+## 26                      POU domain, class 6, transcription factor 1 [Source:MGI Symbol;Acc:MGI:102935]
+## 27                                      serine/threonine kinase 10 [Source:MGI Symbol;Acc:MGI:1099439]
+## 28                                    Casitas B-lineage lymphoma b [Source:MGI Symbol;Acc:MGI:2146430]
+## 29                                         HtrA serine peptidase 2 [Source:MGI Symbol;Acc:MGI:1928676]
+## 30                           Holliday junction recognition protein [Source:MGI Symbol;Acc:MGI:2685821]
+## 31                      POU domain, class 2, transcription factor 2 [Source:MGI Symbol;Acc:MGI:101897]
+## 32                                       SH2 domain containing 1B1 [Source:MGI Symbol;Acc:MGI:1349420]
+## 33                                      transmembrane protein 121B [Source:MGI Symbol;Acc:MGI:2136977]
+## 34                        sprouty-related EVH1 domain containing 2 [Source:MGI Symbol;Acc:MGI:2150019]
+## 35                                programmed cell death 1 ligand 2 [Source:MGI Symbol;Acc:MGI:1930125]
+## 36                   B cell leukemia/lymphoma 2 related protein A1a [Source:MGI Symbol;Acc:MGI:102687]
+## 37                                small cell adhesion glycoprotein [Source:MGI Symbol;Acc:MGI:2448476]
+## 38                                      diacylglycerol kinase, eta [Source:MGI Symbol;Acc:MGI:2444188]
+## 39                                            complement component 3 [Source:MGI Symbol;Acc:MGI:88227]
+## 40                                 transglutaminase 2, C polypeptide [Source:MGI Symbol;Acc:MGI:98731]
+## 41                                                      keratin 80 [Source:MGI Symbol;Acc:MGI:1921377]
+## 42                 StAR related lipid transfer domain containing 9 [Source:MGI Symbol;Acc:MGI:3045258]
+## 43                             peptidoglycan recognition protein 1 [Source:MGI Symbol;Acc:MGI:1345092]
+## 44                                                     fibronectin 1 [Source:MGI Symbol;Acc:MGI:95566]
+## 45                                                           embigin [Source:MGI Symbol;Acc:MGI:95321]
+## 46                                                    HOP homeobox [Source:MGI Symbol;Acc:MGI:1916782]
+## 47                                        transmembrane protein 26 [Source:MGI Symbol;Acc:MGI:2143537]
+## 48                                                           notch 1 [Source:MGI Symbol;Acc:MGI:97363]
+## 49                     NPC intracellular cholesterol transporter 2 [Source:MGI Symbol;Acc:MGI:1915213]
+## 50                  peroxisome proliferator activated receptor gamma [Source:MGI Symbol;Acc:MGI:97747]
+##    Chromosome.scaffold.name Gene.start..bp. Gene.end..bp. Gene...GC.content
+## 1                        12        11315887      11369786             38.40
+## 2                         2       134627987     135317178             40.03
+## 3                        12       100267029     100487085             46.68
+## 4                         9       123901987     123913594             38.86
+## 5                         3         9752539       9898739             44.66
+## 6                         2        93249456      93293485             53.35
+## 7                        17        12337591      12438532             47.10
+## 8                         4       132460277     132484563             48.69
+## 9                        10       117977716     118004902             45.09
+## 10                        6       116387038     116438139             44.76
+## 11                        1       171667265     171718285             40.92
+## 12                       11        74274182      74501741             48.16
+## 13                        6       125437229     125471754             50.16
+## 14                       13        89803431      89890628             38.53
+## 15                        4        88314381      88357165             40.13
+## 16                        9        54272442      54408910             40.38
+## 17                       17         7292942       7570726             47.80
+## 18                       18        78793595      79152606             43.02
+## 19                       12        82216094      82498560             44.03
+## 20                       17        27152026      27156882             57.83
+## 21                        7        37882642      37896992             49.30
+## 22                        7        24443408      24459736             52.26
+## 23                        6       134692431     134769588             41.74
+## 24                        9       119898062     119899688             51.32
+## 25                       11         6456548       6470965             52.16
+## 26                       15       100473199     100497865             51.02
+## 27                       11        32483305      32574587             50.40
+## 28                       16        51851588      52028411             40.59
+## 29                        6        83028247      83032254             54.84
+## 30                        1        88190193      88205355             48.84
+## 31                        7        24786769      24879151             51.78
+## 32                        1       170104889     170114338             43.62
+## 33                        6       120465900     120470768             59.33
+## 34                       11        19874375      19974026             46.83
+## 35                       19        29388319      29448561             43.41
+## 36                        9        88838953      88844472             37.39
+## 37                       15       100519220     100534821             49.37
+## 38                       14        78796190      78970216             43.60
+## 39                       17        57510970      57535136             52.01
+## 40                        2       157958322     157988356             52.49
+## 41                       15       101245325     101268043             52.83
+## 42                        2       120459602     120562376             45.86
+## 43                        7        18605256      18624384             49.04
+## 44                        1        71624679      71692359             43.66
+## 45                       13       117345072     117410951             41.92
+## 46                        5        77234835      77262968             45.02
+## 47                       10        68559476      68618480             40.56
+## 48                        2        26347915      26406675             53.72
+## 49                       12        84801336      84819926             47.51
+## 50                        6       115337912     115467360             39.51
+##         Gene.type
+## 1  protein_coding
+## 2  protein_coding
+## 3  protein_coding
+## 4  protein_coding
+## 5  protein_coding
+## 6  protein_coding
+## 7  protein_coding
+## 8  protein_coding
+## 9  protein_coding
+## 10 protein_coding
+## 11 protein_coding
+## 12 protein_coding
+## 13 protein_coding
+## 14 protein_coding
+## 15 protein_coding
+## 16 protein_coding
+## 17 protein_coding
+## 18 protein_coding
+## 19 protein_coding
+## 20 protein_coding
+## 21 protein_coding
+## 22 protein_coding
+## 23 protein_coding
+## 24         lncRNA
+## 25 protein_coding
+## 26 protein_coding
+## 27 protein_coding
+## 28 protein_coding
+## 29 protein_coding
+## 30 protein_coding
+## 31 protein_coding
+## 32 protein_coding
+## 33 protein_coding
+## 34 protein_coding
+## 35 protein_coding
+## 36 protein_coding
+## 37 protein_coding
+## 38 protein_coding
+## 39 protein_coding
+## 40 protein_coding
+## 41 protein_coding
+## 42 protein_coding
+## 43 protein_coding
+## 44 protein_coding
+## 45 protein_coding
+## 46 protein_coding
+## 47 protein_coding
+## 48 protein_coding
+## 49 protein_coding
+## 50 protein_coding
 ```
 Columns are
 * logFC: log2 fold change of WT.C/WT.NC
@@ -879,143 +1070,10 @@ Columns are
 * adj.P.Val: Benjamini-Hochberg false discovery rate adjusted p-value
 * B: log-odds that gene is DE (arguably less useful than the other columns)
 
-ENSMUSG00000030203.18 has higher expression at WT NC than at WT C (logFC is negative).  ENSMUSG00000026193.16 has higher expression at WT C than at WT NC (logFC is positive).
+Smc6 has higher expression at WT NC than at WT C (logFC is negative).  
+Plcb1 has higher expression at WT C than at WT NC (logFC is positive).
 
-## 9. Write top.table to a file, adding in cpms and annotation
-
-``` r
-top.table$Gene <- rownames(top.table)
-top.table <- top.table[,c("Gene", names(top.table)[1:6])]
-top.table <- data.frame(top.table,anno[match(top.table$Gene,anno$Gene.stable.ID.version),],logcpm[match(top.table$Gene,rownames(logcpm)),])
-
-head(top.table)
-```
-
-```
-##                                        Gene     logFC  AveExpr         t
-## ENSMUSG00000020608.8   ENSMUSG00000020608.8 -2.258712 7.932239 -48.95237
-## ENSMUSG00000051177.17 ENSMUSG00000051177.17  3.084665 5.208911  46.54613
-## ENSMUSG00000033530.9   ENSMUSG00000033530.9 -2.006122 5.738811 -45.37570
-## ENSMUSG00000027215.14 ENSMUSG00000027215.14 -2.446067 6.924080 -42.94815
-## ENSMUSG00000027508.16 ENSMUSG00000027508.16 -1.767470 8.248818 -42.90086
-## ENSMUSG00000049103.15 ENSMUSG00000049103.15  2.024618 9.789045  42.60381
-##                            P.Value    adj.P.Val        B     Gene.stable.ID
-## ENSMUSG00000020608.8  4.109222e-16 6.291544e-12 27.46936 ENSMUSG00000020608
-## ENSMUSG00000051177.17 7.877908e-16 6.291544e-12 26.43737 ENSMUSG00000051177
-## ENSMUSG00000033530.9  1.094372e-15 6.291544e-12 26.35957 ENSMUSG00000033530
-## ENSMUSG00000027215.14 2.224431e-15 7.093569e-12 25.78243 ENSMUSG00000027215
-## ENSMUSG00000027508.16 2.256262e-15 7.093569e-12 25.80754 ENSMUSG00000027508
-## ENSMUSG00000049103.15 2.467758e-15 7.093569e-12 25.71906 ENSMUSG00000049103
-##                       Gene.stable.ID.version Transcript.stable.ID
-## ENSMUSG00000020608.8    ENSMUSG00000020608.8   ENSMUST00000020931
-## ENSMUSG00000051177.17  ENSMUSG00000051177.17   ENSMUST00000131552
-## ENSMUSG00000033530.9    ENSMUSG00000033530.9   ENSMUST00000062957
-## ENSMUSG00000027215.14  ENSMUSG00000027215.14   ENSMUST00000099696
-## ENSMUSG00000027508.16  ENSMUSG00000027508.16   ENSMUST00000161949
-## ENSMUSG00000049103.15  ENSMUSG00000049103.15   ENSMUST00000171719
-##                       Transcript.stable.ID.version
-## ENSMUSG00000020608.8          ENSMUST00000020931.6
-## ENSMUSG00000051177.17         ENSMUST00000131552.5
-## ENSMUSG00000033530.9          ENSMUST00000062957.8
-## ENSMUSG00000027215.14         ENSMUST00000099696.8
-## ENSMUSG00000027508.16         ENSMUST00000161949.8
-## ENSMUSG00000049103.15         ENSMUST00000171719.8
-##                                                                                                          Gene.description
-## ENSMUSG00000020608.8                          structural maintenance of chromosomes 6 [Source:MGI Symbol;Acc:MGI:1914491]
-## ENSMUSG00000051177.17                                           phospholipase C, beta 1 [Source:MGI Symbol;Acc:MGI:97613]
-## ENSMUSG00000033530.9                               tetratricopeptide repeat domain 7B [Source:MGI Symbol;Acc:MGI:2144724]
-## ENSMUSG00000027215.14                                                     CD82 antigen [Source:MGI Symbol;Acc:MGI:104651]
-## ENSMUSG00000027508.16 phosphoprotein associated with glycosphingolipid microdomains 1 [Source:MGI Symbol;Acc:MGI:2443160]
-## ENSMUSG00000049103.15                                   C-C motif chemokine receptor 2 [Source:MGI Symbol;Acc:MGI:106185]
-##                       Chromosome.scaffold.name Gene.start..bp. Gene.end..bp.
-## ENSMUSG00000020608.8                        12        11315887      11369786
-## ENSMUSG00000051177.17                        2       134627987     135317178
-## ENSMUSG00000033530.9                        12       100267029     100487085
-## ENSMUSG00000027215.14                        2        93249456      93293485
-## ENSMUSG00000027508.16                        3         9752539       9898739
-## ENSMUSG00000049103.15                        9       123901987     123913594
-##                       Gene.name Transcript.count Gene...GC.content
-## ENSMUSG00000020608.8       Smc6               12             38.40
-## ENSMUSG00000051177.17     Plcb1                8             40.03
-## ENSMUSG00000033530.9      Ttc7b               10             46.68
-## ENSMUSG00000027215.14      Cd82               11             53.35
-## ENSMUSG00000027508.16      Pag1                5             44.66
-## ENSMUSG00000049103.15      Ccr2                4             38.86
-##                            Gene.type mouse_110_WT_C mouse_110_WT_NC
-## ENSMUSG00000020608.8  protein_coding       6.909511        9.093702
-## ENSMUSG00000051177.17 protein_coding       6.665280        3.539107
-## ENSMUSG00000033530.9  protein_coding       4.889113        6.880247
-## ENSMUSG00000027215.14 protein_coding       5.634094        8.004024
-## ENSMUSG00000027508.16 protein_coding       7.384965        9.115730
-## ENSMUSG00000049103.15 protein_coding      10.846543        8.785040
-##                       mouse_148_WT_C mouse_148_WT_NC mouse_158_WT_C
-## ENSMUSG00000020608.8        7.109168        9.376378       7.021856
-## ENSMUSG00000051177.17       6.594182        3.418889       6.544532
-## ENSMUSG00000033530.9        4.841584        6.817042       4.851939
-## ENSMUSG00000027215.14       5.767057        8.154524       5.828054
-## ENSMUSG00000027508.16       7.262699        9.094496       7.565630
-## ENSMUSG00000049103.15      11.003273        8.923699      10.777910
-##                       mouse_158_WT_NC mouse_183_KOMIR150_C
-## ENSMUSG00000020608.8         9.124142             7.009398
-## ENSMUSG00000051177.17        3.602728             6.769051
-## ENSMUSG00000033530.9         6.878375             4.840090
-## ENSMUSG00000027215.14        8.257295             5.776053
-## ENSMUSG00000027508.16        9.336078             7.407865
-## ENSMUSG00000049103.15        8.733009            10.947833
-##                       mouse_183_KOMIR150_NC mouse_198_KOMIR150_C
-## ENSMUSG00000020608.8               9.327547             6.663031
-## ENSMUSG00000051177.17              3.422466             6.967922
-## ENSMUSG00000033530.9               6.769309             4.828718
-## ENSMUSG00000027215.14              8.029447             5.713617
-## ENSMUSG00000027508.16              8.884740             7.267913
-## ENSMUSG00000049103.15              8.782631            10.518603
-##                       mouse_198_KOMIR150_NC mouse_206_KOMIR150_C
-## ENSMUSG00000020608.8               8.970116             6.698459
-## ENSMUSG00000051177.17              4.089234             6.638187
-## ENSMUSG00000033530.9               6.886812             4.888280
-## ENSMUSG00000027215.14              8.183328             5.703572
-## ENSMUSG00000027508.16              8.913487             7.241765
-## ENSMUSG00000049103.15              8.529684            10.793135
-##                       mouse_206_KOMIR150_NC mouse_2670_KOTet3_C
-## ENSMUSG00000020608.8               8.917254            6.780866
-## ENSMUSG00000051177.17              3.383547            7.145287
-## ENSMUSG00000033530.9               6.882372            4.763290
-## ENSMUSG00000027215.14              8.007117            5.820963
-## ENSMUSG00000027508.16              8.933738            7.902269
-## ENSMUSG00000049103.15              8.807813           11.061024
-##                       mouse_2670_KOTet3_NC mouse_7530_KOTet3_C
-## ENSMUSG00000020608.8              9.387104            6.532186
-## ENSMUSG00000051177.17             3.272284            7.063817
-## ENSMUSG00000033530.9              6.964879            4.606986
-## ENSMUSG00000027215.14             8.934063            5.880906
-## ENSMUSG00000027508.16             9.484503            7.644134
-## ENSMUSG00000049103.15             7.551769           10.938499
-##                       mouse_7530_KOTet3_NC mouse_7531_KOTet3_C mouse_7532_WT_NC
-## ENSMUSG00000020608.8              9.202651            6.317310         8.872508
-## ENSMUSG00000051177.17             3.249369            7.211090         3.711642
-## ENSMUSG00000033530.9              6.849625            4.416314         6.450395
-## ENSMUSG00000027215.14             8.659369            5.382250         7.866036
-## ENSMUSG00000027508.16             9.400048            7.435641         8.993779
-## ENSMUSG00000049103.15             7.357562           11.003926         9.501190
-##                       mouse_H510_WT_C mouse_H510_WT_NC mouse_H514_WT_C
-## ENSMUSG00000020608.8         6.520912         8.915900        6.697032
-## ENSMUSG00000051177.17        7.074442         4.107131        6.733472
-## ENSMUSG00000033530.9         4.346627         6.357781        4.652085
-## ENSMUSG00000027215.14        5.271740         7.855944        5.581723
-## ENSMUSG00000027508.16        7.003783         8.773934        7.353454
-## ENSMUSG00000049103.15       11.154497         9.349717       11.066168
-##                       mouse_H514_WT_NC
-## ENSMUSG00000020608.8          9.075693
-## ENSMUSG00000051177.17         3.497872
-## ENSMUSG00000033530.9          6.649826
-## ENSMUSG00000027215.14         8.046490
-## ENSMUSG00000027508.16         9.082447
-## ENSMUSG00000049103.15         8.929493
-```
-
-``` r
-write.table(top.table, file = "WT.C_v_WT.NC.txt", row.names = F, sep = "\t", quote = F)
-```
+* The interpretation of the direction of the log fold change depends on how you set up the comparison in makeContrasts *
 
 ## Quiz 3
 
@@ -1031,27 +1089,27 @@ myQuestions3 = [
   {
       question: "Based on the above model, how many genes are significantly differentially expressed between WT C and WT NC? (Significant = adjusted P < 0.05)",
     answers: {
-      a: "9,552",
+      a: "9,544",
       b: "0",
-      c: "8,642",
+      c: "8,627",
     },
     correctAnswer: "c"
   },
   {
     question: "Based on the above model, and without taking significance into account, how many genes have higher expression in WT C than in WT NC",
     answers: {
-      a: "8,364",
-      b: "4,234",
-      c: "8,883",
+      a: "8,360",
+      b: "4,215",
+      c: "8,887",
     },
     correctAnswer: "a"
   },
   {
     question: "How many genes have an unadjusted p-value less than 0.05 for the comparison of WT C to WT NC in the above model",
     answers: {
-      a: "9,552",
+      a: "9,544",
       b: "0",
-      c: "8,642",
+      c: "8,627",
     },
     correctAnswer: "a"
   },
@@ -1093,47 +1151,47 @@ head(top.table, 20)
 
 ```
 ##                            logFC   AveExpr          t      P.Value    adj.P.Val
-## ENSMUSG00000030703.9  -2.9184408  4.674336 -20.154635 3.532201e-11 6.091987e-07
-## ENSMUSG00000141370.1   3.2923388  3.418957  12.254542 1.650179e-08 1.423032e-04
-## ENSMUSG00000044229.10 -3.0634049  7.010473 -11.437907 3.762894e-08 1.858610e-04
-## ENSMUSG00000032012.10 -4.7181778  5.272115 -11.307774 4.310570e-08 1.858610e-04
-## ENSMUSG00000008348.10 -1.1966495  6.062840 -10.922569 6.494842e-08 1.938766e-04
-## ENSMUSG00000030748.10  1.8001176  7.188642  10.887646 6.744708e-08 1.938766e-04
-## ENSMUSG00000066687.6  -1.8783939  5.116244 -10.411293 1.140150e-07 2.809166e-04
-## ENSMUSG00000121395.2  -5.3228895  2.119605 -10.040498 1.739024e-07 3.749117e-04
-## ENSMUSG00000028619.16  3.0720910  4.788141   9.769637 2.385855e-07 4.572093e-04
-## ENSMUSG00000028037.14  4.7474251  2.890467   9.049705 5.721792e-07 9.868375e-04
-## ENSMUSG00000028028.12  0.9253128  7.335330   8.582233 1.038758e-06 1.445487e-03
-## ENSMUSG00000070372.12 -0.7168124  7.400887  -8.530352 1.111442e-06 1.445487e-03
-## ENSMUSG00000094344.2   3.9405203  2.096236   8.522333 1.123150e-06 1.445487e-03
-## ENSMUSG00000035212.15 -0.6378864  7.171750  -8.488932 1.173353e-06 1.445487e-03
-## ENSMUSG00000042105.19 -0.6855997  7.561410  -8.035822 2.150069e-06 2.472149e-03
-## ENSMUSG00000055994.16 -0.9520195  6.023635  -7.476958 4.691447e-06 5.057086e-03
-## ENSMUSG00000142665.1  -5.8603549 -1.721250  -7.004072 9.358438e-06 8.986704e-03
-## ENSMUSG00000045382.7  -0.8931394  8.267726  -6.972988 9.802909e-06 8.986704e-03
-## ENSMUSG00000141229.1  -2.1945919  2.961001  -6.933211 1.040454e-05 8.986704e-03
-## ENSMUSG00000030847.9   0.8748088  5.792532   6.932146 1.042118e-05 8.986704e-03
+## ENSMUSG00000030703.9  -2.9194381  4.674336 -19.992018 4.799425e-11 8.277568e-07
+## ENSMUSG00000141370.1   3.2914333  3.418957  12.338454 1.739975e-08 1.500468e-04
+## ENSMUSG00000032012.10 -4.7116503  5.272115 -11.259051 5.129565e-08 2.610370e-04
+## ENSMUSG00000044229.10 -3.0637042  7.010473 -11.011062 6.656563e-08 2.610370e-04
+## ENSMUSG00000008348.10 -1.1959831  6.062840 -10.816647 8.193086e-08 2.610370e-04
+## ENSMUSG00000030748.10  1.8019351  7.188642  10.721362 9.081126e-08 2.610370e-04
+## ENSMUSG00000066687.6  -1.8789903  5.116244 -10.353106 1.361290e-07 3.354025e-04
+## ENSMUSG00000121395.2  -5.3218171  2.119605 -10.149530 1.711232e-07 3.689202e-04
+## ENSMUSG00000028619.16  3.0731154  4.788141   9.849959 2.412317e-07 4.622803e-04
+## ENSMUSG00000028037.14  4.7474704  2.890467   9.115861 5.799260e-07 1.000198e-03
+## ENSMUSG00000094344.2   3.9406482  2.096236   8.670724 1.013461e-06 1.589015e-03
+## ENSMUSG00000028028.12  0.9274642  7.335330   8.480652 1.294545e-06 1.860584e-03
+## ENSMUSG00000035212.15 -0.6376350  7.171750  -8.394750 1.447867e-06 1.909302e-03
+## ENSMUSG00000070372.12 -0.7170769  7.400887  -8.342820 1.549848e-06 1.909302e-03
+## ENSMUSG00000042105.19 -0.6887919  7.561410  -7.938529 2.660613e-06 3.059173e-03
+## ENSMUSG00000055994.16 -0.9524909  6.023635  -7.425583 5.430495e-06 5.853734e-03
+## ENSMUSG00000142665.1  -5.8609136 -1.721250  -7.011604 9.891962e-06 1.003569e-02
+## ENSMUSG00000141229.1  -2.1940583  2.961001  -6.966553 1.057312e-05 1.013081e-02
+## ENSMUSG00000030847.9   0.8747695  5.792532   6.914761 1.141810e-05 1.036463e-02
+## ENSMUSG00000031431.14 -0.5941060  8.740396  -6.858833 1.241145e-05 1.070301e-02
 ##                               B
-## ENSMUSG00000030703.9  15.788910
-## ENSMUSG00000141370.1   8.904686
-## ENSMUSG00000044229.10  9.205518
-## ENSMUSG00000032012.10  8.933763
-## ENSMUSG00000008348.10  8.650834
-## ENSMUSG00000030748.10  8.684318
-## ENSMUSG00000066687.6   8.165414
-## ENSMUSG00000121395.2   4.921320
-## ENSMUSG00000028619.16  6.797334
-## ENSMUSG00000028037.14  5.859906
-## ENSMUSG00000028028.12  5.737760
-## ENSMUSG00000070372.12  5.662515
-## ENSMUSG00000094344.2   3.902140
-## ENSMUSG00000035212.15  5.592687
-## ENSMUSG00000042105.19  4.912592
-## ENSMUSG00000055994.16  4.323918
-## ENSMUSG00000142665.1   1.003976
-## ENSMUSG00000045382.7   3.271628
-## ENSMUSG00000141229.1   3.589869
-## ENSMUSG00000030847.9   3.683359
+## ENSMUSG00000030703.9  15.516312
+## ENSMUSG00000141370.1   8.913339
+## ENSMUSG00000032012.10  8.790166
+## ENSMUSG00000044229.10  8.634119
+## ENSMUSG00000008348.10  8.425523
+## ENSMUSG00000030748.10  8.397860
+## ENSMUSG00000066687.6   8.001396
+## ENSMUSG00000121395.2   5.041235
+## ENSMUSG00000028619.16  6.827465
+## ENSMUSG00000028037.14  5.896506
+## ENSMUSG00000094344.2   4.062191
+## ENSMUSG00000028028.12  5.507374
+## ENSMUSG00000035212.15  5.383447
+## ENSMUSG00000070372.12  5.326448
+## ENSMUSG00000042105.19  4.692763
+## ENSMUSG00000055994.16  4.182911
+## ENSMUSG00000142665.1   1.049400
+## ENSMUSG00000141229.1   3.596209
+## ENSMUSG00000030847.9   3.596380
+## ENSMUSG00000031431.14  2.950392
 ```
 
 ``` r
@@ -1141,7 +1199,7 @@ length(which(top.table$adj.P.Val < 0.05)) # number of DE genes
 ```
 
 ```
-## [1] 55
+## [1] 54
 ```
 
 ``` r
@@ -1208,48 +1266,48 @@ head(top.table, 20)
 ```
 
 ```
-##                            logFC    AveExpr          t      P.Value
-## ENSMUSG00000030703.9   3.3691994  4.6743364  28.354613 1.379455e-12
-## ENSMUSG00000044229.10  2.9566364  7.0104732  23.820931 1.136274e-11
-## ENSMUSG00000032012.10  4.9846867  5.2721151  19.713225 1.104372e-10
-## ENSMUSG00000121395.2   5.3563601  2.1196052  17.672210 4.062539e-10
-## ENSMUSG00000008348.10  1.5306941  6.0628400  16.501813 9.147228e-10
-## ENSMUSG00000030847.9  -1.2202600  5.7925324 -14.833763 3.202814e-09
-## ENSMUSG00000070372.12  0.9134937  7.4008866  14.381782 4.597791e-09
-## ENSMUSG00000141370.1  -2.8769770  3.4189571 -13.594773 8.847086e-09
-## ENSMUSG00000028619.16 -2.8359738  4.7881413 -13.151792 1.297994e-08
-## ENSMUSG00000035212.15  0.7948377  7.1717496  12.830068 1.726989e-08
-## ENSMUSG00000066687.6   1.8827185  5.1162445  11.843660 4.316068e-08
-## ENSMUSG00000028028.12 -0.9771871  7.3353303 -11.625898 5.329837e-08
-## ENSMUSG00000142665.1   6.8374412 -1.7212501  11.594968 5.493457e-08
-## ENSMUSG00000060802.9   0.8054444 10.4905056  10.666629 1.407116e-07
-## ENSMUSG00000042105.19  0.6551924  7.5614100  10.639851 1.447249e-07
-## ENSMUSG00000028173.11 -1.7031428  6.7673701 -10.436373 1.795459e-07
-## ENSMUSG00000094344.2  -3.3139261  2.0962361 -10.405677 1.855366e-07
-## ENSMUSG00000141229.1   1.9369185  2.9610015  10.217245 2.273431e-07
-## ENSMUSG00000042396.11 -0.8450831  6.6100960  -9.819333 3.527149e-07
-## ENSMUSG00000096255.3   5.2173781  0.3405843   9.637726 4.330343e-07
-##                          adj.P.Val         B
-## ENSMUSG00000030703.9  2.379146e-08 18.103846
-## ENSMUSG00000044229.10 9.798662e-08 17.287358
-## ENSMUSG00000032012.10 6.349034e-07 14.814351
-## ENSMUSG00000121395.2  1.751665e-06 10.600662
-## ENSMUSG00000008348.10 3.155245e-06 12.978857
-## ENSMUSG00000030847.9  9.206488e-06 11.738020
-## ENSMUSG00000070372.12 1.132830e-05 11.305475
-## ENSMUSG00000141370.1  1.907321e-05  9.835385
-## ENSMUSG00000028619.16 2.487390e-05  9.833637
-## ENSMUSG00000035212.15 2.978538e-05  9.957074
-## ENSMUSG00000066687.6  6.767203e-05  9.155066
-## ENSMUSG00000028028.12 7.288127e-05  8.793299
-## ENSMUSG00000142665.1  7.288127e-05  4.237831
-## ENSMUSG00000060802.9  1.664046e-04  7.677507
-## ENSMUSG00000042105.19 1.664046e-04  7.729340
-## ENSMUSG00000028173.11 1.882323e-04  7.597094
-## ENSMUSG00000094344.2  1.882323e-04  6.244400
-## ENSMUSG00000141229.1  2.178326e-04  7.362543
-## ENSMUSG00000042396.11 3.201723e-04  6.887958
-## ENSMUSG00000096255.3  3.734272e-04  4.954769
+##                            logFC   AveExpr          t      P.Value    adj.P.Val
+## ENSMUSG00000030703.9   3.3697080  4.674336  28.305481 1.887065e-12 3.254620e-08
+## ENSMUSG00000044229.10  2.9660044  7.010473  24.182296 1.235273e-11 1.065237e-07
+## ENSMUSG00000032012.10  4.9862346  5.272115  19.632150 1.460160e-10 8.394459e-07
+## ENSMUSG00000121395.2   5.3551750  2.119605  17.905245 4.309634e-10 1.858206e-06
+## ENSMUSG00000008348.10  1.5313695  6.062840  16.436633 1.171436e-09 4.040750e-06
+## ENSMUSG00000070372.12  0.9126391  7.400887  15.139517 3.041460e-09 8.742676e-06
+## ENSMUSG00000030847.9  -1.2200778  5.792532 -14.829575 3.862487e-09 9.516616e-06
+## ENSMUSG00000141370.1  -2.8778141  3.418957 -13.626035 1.021644e-08 2.202537e-05
+## ENSMUSG00000028619.16 -2.8333506  4.788141 -13.324310 1.319480e-08 2.528564e-05
+## ENSMUSG00000035212.15  0.7953298  7.171750  13.098953 1.602664e-08 2.764115e-05
+## ENSMUSG00000060802.9   0.8051525 10.490506  11.977998 4.412492e-08 6.918387e-05
+## ENSMUSG00000066687.6   1.8835020  5.116244  11.820502 5.120364e-08 7.359243e-05
+## ENSMUSG00000142665.1   6.8364390 -1.721250  11.703164 5.726910e-08 7.558936e-05
+## ENSMUSG00000028028.12 -0.9761127  7.335330 -11.631366 6.135856e-08 7.558936e-05
+## ENSMUSG00000042105.19  0.6567193  7.561410  11.000310 1.143105e-07 1.314342e-04
+## ENSMUSG00000094344.2  -3.3143358  2.096236 -10.637102 1.657766e-07 1.786969e-04
+## ENSMUSG00000028173.11 -1.7099073  6.767370 -10.462589 1.989338e-07 2.018242e-04
+## ENSMUSG00000141229.1   1.9362686  2.961001  10.209150 2.604023e-07 2.495088e-04
+## ENSMUSG00000060126.15  0.6027445  9.691409   9.930599 3.522917e-07 3.150102e-04
+## ENSMUSG00000042396.11 -0.8470088  6.610096  -9.897611 3.652928e-07 3.150102e-04
+##                               B
+## ENSMUSG00000030703.9  17.453377
+## ENSMUSG00000044229.10 17.167312
+## ENSMUSG00000032012.10 14.417237
+## ENSMUSG00000121395.2  10.031807
+## ENSMUSG00000008348.10 12.747302
+## ENSMUSG00000070372.12 11.762973
+## ENSMUSG00000030847.9  11.550802
+## ENSMUSG00000141370.1   9.436274
+## ENSMUSG00000028619.16  9.637239
+## ENSMUSG00000035212.15 10.087418
+## ENSMUSG00000060802.9   8.808369
+## ENSMUSG00000066687.6   8.968405
+## ENSMUSG00000142665.1   3.646139
+## ENSMUSG00000028028.12  8.707508
+## ENSMUSG00000042105.19  8.032779
+## ENSMUSG00000094344.2   6.008150
+## ENSMUSG00000028173.11  7.560533
+## ENSMUSG00000141229.1   7.137772
+## ENSMUSG00000060126.15  6.680188
+## ENSMUSG00000042396.11  6.923373
 ```
 
 ``` r
@@ -1257,7 +1315,7 @@ length(which(top.table$adj.P.Val < 0.05))
 ```
 
 ```
-## [1] 1265
+## [1] 1299
 ```
 
 What if we want to look at the correlation of gene expression with a continuous variable like pH?
@@ -1304,47 +1362,47 @@ head(top.table, 20)
 
 ```
 ##                             logFC    AveExpr         t      P.Value adj.P.Val
-## ENSMUSG00000056054.10 -1.08619171  1.0238092 -4.793353 8.074339e-05 0.9999306
-## ENSMUSG00000015312.10 -0.12352145  3.3720392 -4.159606 3.877487e-04 0.9999306
-## ENSMUSG00000056071.13 -1.04406447  0.9189572 -4.061735 4.939323e-04 0.9999306
-## ENSMUSG00000038331.16  0.13188068  3.5729036  3.868512 7.955029e-04 0.9999306
-## ENSMUSG00000094497.2  -1.03764050 -1.7317220 -3.785617 9.752655e-04 0.9999306
-## ENSMUSG00000023031.9  -0.32370912 -1.5409098 -3.770437 1.012282e-03 0.9999306
-## ENSMUSG00000024222.19 -0.19667336  4.0027681 -3.662375 1.318908e-03 0.9999306
-## ENSMUSG00000026822.15 -1.03832005  1.2810295 -3.638338 1.398651e-03 0.9999306
-## ENSMUSG00000038539.16 -0.12585563  2.5045600 -3.596826 1.547668e-03 0.9999306
-## ENSMUSG00000095457.4   0.47513240 -1.6979028  3.494632 1.984053e-03 0.9999306
-## ENSMUSG00000039196.3  -0.57638112 -4.0577484 -3.480291 2.054222e-03 0.9999306
-## ENSMUSG00000039168.16 -0.06703208  6.6873541 -3.459287 2.161387e-03 0.9999306
-## ENSMUSG00000056673.15 -1.06498999  1.2014056 -3.455575 2.180885e-03 0.9999306
-## ENSMUSG00000020311.18 -0.05826226  4.9175092 -3.452088 2.199355e-03 0.9999306
-## ENSMUSG00000034723.12 -0.09565057  5.4403355 -3.409737 2.436290e-03 0.9999306
-## ENSMUSG00000085337.3   0.12789750  3.3314678  3.306099 3.125923e-03 0.9999306
-## ENSMUSG00000023903.9  -0.45887258 -0.4025828 -3.305502 3.130403e-03 0.9999306
-## ENSMUSG00000029648.14  0.30724334  6.3762885  3.250105 3.573989e-03 0.9999306
-## ENSMUSG00000068457.15 -1.05927987 -0.4391390 -3.244053 3.626000e-03 0.9999306
-## ENSMUSG00000031843.3  -0.14208220  3.8273211 -3.189756 4.126566e-03 0.9999306
+## ENSMUSG00000056054.10 -1.08046169  1.0238092 -4.722658 9.619382e-05 0.9999806
+## ENSMUSG00000015312.10 -0.12400255  3.3720392 -4.151534 3.956791e-04 0.9999806
+## ENSMUSG00000056071.13 -1.03901643  0.9189572 -4.008874 5.629665e-04 0.9999806
+## ENSMUSG00000038331.16  0.13148729  3.5729036  3.848961 8.348857e-04 0.9999806
+## ENSMUSG00000094497.2  -1.03912750 -1.7317220 -3.804161 9.320584e-04 0.9999806
+## ENSMUSG00000023031.9  -0.32437788 -1.5409098 -3.775778 9.993151e-04 0.9999806
+## ENSMUSG00000024222.19 -0.19679092  4.0027681 -3.658723 1.330987e-03 0.9999806
+## ENSMUSG00000038539.16 -0.12560686  2.5045600 -3.579617 1.614212e-03 0.9999806
+## ENSMUSG00000026822.15 -1.02855375  1.2810295 -3.573994 1.636456e-03 0.9999806
+## ENSMUSG00000095457.4   0.47849814 -1.6979028  3.534552 1.801176e-03 0.9999806
+## ENSMUSG00000039168.16 -0.06738600  6.6873541 -3.487869 2.017189e-03 0.9999806
+## ENSMUSG00000039196.3  -0.57280362 -4.0577484 -3.454407 2.187420e-03 0.9999806
+## ENSMUSG00000020311.18 -0.05829110  4.9175092 -3.424465 2.351580e-03 0.9999806
+## ENSMUSG00000056673.15 -1.06071377  1.2014056 -3.409749 2.436607e-03 0.9999806
+## ENSMUSG00000034723.12 -0.09544103  5.4403355 -3.394240 2.529464e-03 0.9999806
+## ENSMUSG00000023903.9  -0.45906946 -0.4025828 -3.316345 3.050515e-03 0.9999806
+## ENSMUSG00000085337.3   0.12833624  3.3314678  3.312827 3.076361e-03 0.9999806
+## ENSMUSG00000068457.15 -1.05817263 -0.4391390 -3.228838 3.760521e-03 0.9999806
+## ENSMUSG00000029648.14  0.30488869  6.3762885  3.205174 3.978538e-03 0.9999806
+## ENSMUSG00000031843.3  -0.14235062  3.8273211 -3.191393 4.111089e-03 0.9999806
 ##                                 B
-## ENSMUSG00000056054.10  0.75580190
-## ENSMUSG00000015312.10  0.01303842
-## ENSMUSG00000056071.13 -0.60067591
-## ENSMUSG00000038331.16 -0.62310829
-## ENSMUSG00000094497.2  -2.07221857
-## ENSMUSG00000023031.9  -2.54943443
-## ENSMUSG00000024222.19 -0.91380735
-## ENSMUSG00000026822.15 -1.23521031
-## ENSMUSG00000038539.16 -1.26383551
-## ENSMUSG00000095457.4  -3.40908897
-## ENSMUSG00000039196.3  -3.50183167
-## ENSMUSG00000039168.16 -1.35754250
-## ENSMUSG00000056673.15 -1.49614726
-## ENSMUSG00000020311.18 -1.34938657
-## ENSMUSG00000034723.12 -1.45055290
-## ENSMUSG00000085337.3  -1.72856671
-## ENSMUSG00000023903.9  -2.47228526
-## ENSMUSG00000029648.14 -1.79218785
-## ENSMUSG00000068457.15 -2.25882586
-## ENSMUSG00000031843.3  -1.87831564
+## ENSMUSG00000056054.10  0.62049791
+## ENSMUSG00000015312.10 -0.01537085
+## ENSMUSG00000056071.13 -0.70026597
+## ENSMUSG00000038331.16 -0.66947106
+## ENSMUSG00000094497.2  -2.03817036
+## ENSMUSG00000023031.9  -2.53844021
+## ENSMUSG00000024222.19 -0.92506033
+## ENSMUSG00000038539.16 -1.29938678
+## ENSMUSG00000026822.15 -1.35519579
+## ENSMUSG00000095457.4  -3.37035178
+## ENSMUSG00000039168.16 -1.29483121
+## ENSMUSG00000039196.3  -3.49602431
+## ENSMUSG00000020311.18 -1.40543740
+## ENSMUSG00000056673.15 -1.58422547
+## ENSMUSG00000034723.12 -1.47864509
+## ENSMUSG00000023903.9  -2.45253610
+## ENSMUSG00000085337.3  -1.72052522
+## ENSMUSG00000068457.15 -2.28247228
+## ENSMUSG00000029648.14 -1.88062558
+## ENSMUSG00000031843.3  -1.87574276
 ```
 
 ``` r
@@ -1372,7 +1430,7 @@ slope
 ```
 
 ```
-## [1] -1.086192
+## [1] -1.080462
 ```
 
 In this example, the log fold change logFC is the slope of the line, or the change in gene expression (on the log2 CPM scale) for each unit increase in pH.
@@ -1462,121 +1520,48 @@ fit <- lmFit(y, mm)
 contrast.matrix <- makeContrasts(groupKOMIR150.C - groupWT.C, levels=colnames(coef(fit)))
 fit2 <- contrasts.fit(fit, contrast.matrix)
 fit2 <- eBayes(fit2)
-top.table <- topTable(fit2, coef = 1, sort.by = "P", n = 40)
+top.table <- topTable(fit2, sort.by = "P", n = Inf)
+top.table$Gene.stable.ID.version <- rownames(top.table)
+top.table <- left_join(top.table, anno, by = "Gene.stable.ID.version")
 ```
 
 ## Volcano plot
 
 
 ``` r
-volcanoplot(fit2, coef=1, highlight=8, names=rownames(fit2), main="Genotype KOMIR150 vs. WT for cell type C", cex.main = 0.8)
+plotdat <- top.table
+plotdat$Category <- "Not significant"
+plotdat$Category[plotdat$adj.P.Val < 0.05 & plotdat$logFC > 0] <- "Upregulated"
+plotdat$Category[plotdat$adj.P.Val < 0.05 & plotdat$logFC < 0] <- "Downregulated"
+plotdat$Category <- factor(plotdat$Category, levels = c("Upregulated", "Downregulated", "Not significant"))
+labeldat <- plotdat[1:20,]
+volcano <- ggplot(plotdat, aes(x = logFC, y = -log10(P.Value), color = Category)) + geom_point(show.legend = TRUE) + geom_text_repel(data = labeldat, aes(label = Gene.name), color = "black", max.overlaps = Inf) + scale_color_manual(values = c("blue", "red", "grey"), breaks = levels(plotdat$Category), drop = FALSE) + labs(color = NULL, title = "KOMIR150 - WT, cell type C") + theme_bw()
+volcano
 ```
 
 ![](DE_Analysis_mm_with_quizzes_files/figure-html/unnamed-chunk-13-1.png)<!-- -->
 
-``` r
-head(anno[match(rownames(fit2), anno$Gene.stable.ID.version),
-     c("Gene.stable.ID.version", "Gene.name") ])
-```
-
-```
-##        Gene.stable.ID.version Gene.name
-## 110586   ENSMUSG00000098104.2    Gm6085
-## 111459  ENSMUSG00000033845.14    Mrpl15
-## 111619   ENSMUSG00000102275.2   Gm37144
-## 226393   ENSMUSG00000136002.1   Gm70766
-## 112356  ENSMUSG00000025903.15    Lypla1
-## 113517  ENSMUSG00000033813.16     Tcea1
-```
-
-``` r
-identical(anno[match(rownames(fit2), anno$Gene.stable.ID.version),
-     c("Gene.stable.ID.version")], rownames(fit2))
-```
-
-```
-## [1] TRUE
-```
-
-``` r
-volcanoplot(fit2, coef=1, highlight=8, names=anno[match(rownames(fit2), anno$Gene.stable.ID.version), "Gene.name"], main="Genotype KOMIR150 vs. WT for cell type C", cex.main = 0.8)
-```
-
-![](DE_Analysis_mm_with_quizzes_files/figure-html/unnamed-chunk-13-2.png)<!-- -->
-
 ## Heatmap
+We will use the ComplexHeatmap R package to generate a heatmap of the top genes from the previous DE test.  ComplexHeatmap is capable of making some truly lovely figures, see the book [here](https://jokergoo.github.io/ComplexHeatmap-reference/book/)
 
 ``` r
-#using a red and blue color scheme without traces and scaling each row
-heatmap.2(logcpm[rownames(top.table),],col=brewer.pal(11,"RdBu"),scale="row", trace="none")
+# Select top 20 DE genes from the above DE analysis
+genes.use <- top.table$Gene.stable.ID.version[1:20]
+names.use <- top.table$Gene.name[1:20]
+plotdat <- cpm(d, log = TRUE, prior.count = 1)
+plotdat <- plotdat[genes.use,]
+# Adding color bars showing metadata
+set.seed(101) # annotation colors are random!
+ha <- HeatmapAnnotation(Group = group, Mouse = mouse, annotation_name_side = "left")
+ht <- Heatmap(plotdat, bottom_annotation = ha, name = "log2 Normalized Expression", row_labels = names.use)
+draw(ht)
 ```
 
 ![](DE_Analysis_mm_with_quizzes_files/figure-html/unnamed-chunk-14-1.png)<!-- -->
 
-``` r
-anno[match(rownames(top.table), anno$Gene.stable.ID.version),
-     c("Gene.stable.ID.version", "Gene.name")]
-```
+## Venn diagram
 
-```
-##        Gene.stable.ID.version     Gene.name
-## 168163   ENSMUSG00000030703.9         Gdpd3
-## 229867   ENSMUSG00000141370.1       Gm71057
-## 226077  ENSMUSG00000044229.10         Nxpe4
-## 37094   ENSMUSG00000032012.10       Nectin1
-## 55219   ENSMUSG00000008348.10           Ubc
-## 226028  ENSMUSG00000030748.10         Il4ra
-## 226356   ENSMUSG00000066687.6        Zbtb16
-## 152447   ENSMUSG00000121395.2       Gm64463
-## 8059    ENSMUSG00000028619.16       Tceanc2
-## 5517    ENSMUSG00000028037.14         Ifi44
-## 31897   ENSMUSG00000028028.12         Alpk1
-## 63884   ENSMUSG00000070372.12        Capza1
-## 216821   ENSMUSG00000094344.2       Gm11942
-## 51618   ENSMUSG00000035212.15        Leprot
-## 215798  ENSMUSG00000042105.19        Inpp5f
-## 39721   ENSMUSG00000055994.16          Nod2
-## 213492   ENSMUSG00000142665.1       Gm70280
-## 42856    ENSMUSG00000045382.7         Cxcr4
-## 178390   ENSMUSG00000141229.1       Gm66192
-## 215762   ENSMUSG00000030847.9          Bag3
-## 27890   ENSMUSG00000031431.14       Tsc22d3
-## 231555   ENSMUSG00000100801.2       Gm15459
-## 2246    ENSMUSG00000096768.11        Erdr1y
-## 204885   ENSMUSG00000120036.2       Gm57017
-## 139344  ENSMUSG00000030365.12        Clec2i
-## 216658  ENSMUSG00000040139.15 9430038I01Rik
-## 88077   ENSMUSG00000009687.15         Fxyd5
-## 10892   ENSMUSG00000016087.14          Fli1
-## 60741    ENSMUSG00000051439.8          Cd14
-## 84528   ENSMUSG00000058626.17        Capn11
-## 158305  ENSMUSG00000070304.14         Scn2b
-## 217841   ENSMUSG00000035385.6          Ccl2
-## 48287    ENSMUSG00000005397.9          Nid1
-## 189623   ENSMUSG00000052415.6          Tchh
-## 196972   ENSMUSG00000083116.2       Gm13410
-## 42889   ENSMUSG00000032109.16         Nlrx1
-## 117273   ENSMUSG00000020108.5         Ddit4
-## 41903   ENSMUSG00000034342.10           Cbl
-## 150342   ENSMUSG00000040152.9         Thbs1
-## 57492    ENSMUSG00000114133.2       Btf3l4b
-```
-
-``` r
-identical(anno[match(rownames(top.table), anno$Gene.stable.ID.version), "Gene.stable.ID.version"], rownames(top.table))
-```
-
-```
-## [1] TRUE
-```
-
-``` r
-heatmap.2(logcpm[rownames(top.table),],col=brewer.pal(11,"RdBu"),scale="row", trace="none", labRow = anno[match(rownames(top.table), anno$Gene.stable.ID.version), "Gene.name"])
-```
-
-![](DE_Analysis_mm_with_quizzes_files/figure-html/unnamed-chunk-14-2.png)<!-- -->
-
-## 2 factor venn diagram
+We recommend using Venn diagrams cautiously.  Often, a question about the non-overlapping parts of a Venn diagram is better answered by testing an interaction effect.
 
 
 ``` r
@@ -1609,7 +1594,6 @@ fit <- lmFit(y, mm)
 contrast.matrix <- makeContrasts(groupKOMIR150.C - groupWT.C, groupKOMIR150.NC - groupWT.NC, levels=colnames(coef(fit)))
 fit2 <- contrasts.fit(fit, contrast.matrix)
 fit2 <- eBayes(fit2)
-top.table <- topTable(fit2, coef = 1, sort.by = "P", n = 40)
 
 results <- decideTests(fit2)
 vennDiagram(results, names = c("C", "NC"), main = "DE Genes Between KOMIR150 and WT by Cell Type", cex.main = 0.8)
@@ -1620,7 +1604,7 @@ vennDiagram(results, names = c("C", "NC"), main = "DE Genes Between KOMIR150 and
 ## Download the Enrichment Analysis R Markdown document
 
 ``` r
-download.file("https://raw.githubusercontent.com/ucdavis-bioinformatics-training/2024-June-RNA-Seq-Analysis/master/data_analysis/enrichment_mm.Rmd", "enrichment_mm.Rmd")
+download.file("https://raw.githubusercontent.com/ucdavis-bioinformatics-training/2026-March-RNA-Seq-Analysis/master/data_analysis/enrichment_mm.Rmd", "enrichment_mm.Rmd")
 ```
 
 
@@ -1629,33 +1613,50 @@ sessionInfo()
 ```
 
 ```
-## R version 4.5.2 (2025-10-31)
-## Platform: aarch64-apple-darwin20
-## Running under: macOS Tahoe 26.0.1
+## R version 4.5.3 (2026-03-11 ucrt)
+## Platform: x86_64-w64-mingw32/x64
+## Running under: Windows 11 x64 (build 26100)
 ## 
 ## Matrix products: default
-## BLAS:   /System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libBLAS.dylib 
-## LAPACK: /Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/lib/libRlapack.dylib;  LAPACK version 3.12.1
+##   LAPACK version 3.12.1
 ## 
 ## locale:
-## [1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+## [1] LC_COLLATE=English_United States.utf8 
+## [2] LC_CTYPE=English_United States.utf8   
+## [3] LC_MONETARY=English_United States.utf8
+## [4] LC_NUMERIC=C                          
+## [5] LC_TIME=English_United States.utf8    
 ## 
 ## time zone: America/Los_Angeles
 ## tzcode source: internal
 ## 
 ## attached base packages:
-## [1] stats     graphics  grDevices utils     datasets  methods   base     
+## [1] grid      stats     graphics  grDevices utils     datasets  methods  
+## [8] base     
 ## 
 ## other attached packages:
-## [1] gplots_3.3.0       RColorBrewer_1.1-3 edgeR_4.8.2        limma_3.66.0      
+## [1] ggrepel_0.9.8         ggplot2_4.0.2         ComplexHeatmap_2.24.1
+## [4] dplyr_1.2.0           edgeR_4.6.3           limma_3.64.3         
 ## 
 ## loaded via a namespace (and not attached):
-##  [1] cli_3.6.5          knitr_1.51         rlang_1.1.7        xfun_0.56         
-##  [5] KernSmooth_2.23-26 otel_0.2.0         jsonlite_2.0.0     gtools_3.9.5      
-##  [9] statmod_1.5.1      htmltools_0.5.9    sass_0.4.10        locfit_1.5-9.12   
-## [13] rmarkdown_2.30     grid_4.5.2         caTools_1.18.3     evaluate_1.0.5    
-## [17] jquerylib_0.1.4    bitops_1.0-9       fastmap_1.2.0      yaml_2.3.12       
-## [21] lifecycle_1.0.5    compiler_4.5.2     rstudioapi_0.18.0  lattice_0.22-9    
-## [25] digest_0.6.39      R6_2.6.1           bslib_0.10.0       tools_4.5.2       
-## [29] cachem_1.1.0
+##  [1] sass_0.4.10         generics_0.1.4      shape_1.4.6.1      
+##  [4] lattice_0.22-9      digest_0.6.39       magrittr_2.0.4     
+##  [7] evaluate_1.0.5      RColorBrewer_1.1-3  iterators_1.0.14   
+## [10] circlize_0.4.17     fastmap_1.2.0       foreach_1.5.2      
+## [13] doParallel_1.0.17   jsonlite_2.0.0      GlobalOptions_0.1.3
+## [16] scales_1.4.0        codetools_0.2-20    jquerylib_0.1.4    
+## [19] cli_3.6.5           rlang_1.1.7         crayon_1.5.3       
+## [22] withr_3.0.2         cachem_1.1.0        yaml_2.3.12        
+## [25] otel_0.2.0          tools_4.5.3         parallel_4.5.3     
+## [28] colorspace_2.1-2    locfit_1.5-9.12     GetoptLong_1.1.0   
+## [31] BiocGenerics_0.54.1 vctrs_0.7.2         R6_2.6.1           
+## [34] png_0.1-9           matrixStats_1.5.0   stats4_4.5.3       
+## [37] lifecycle_1.0.5     S4Vectors_0.46.0    IRanges_2.42.0     
+## [40] clue_0.3-67         cluster_2.1.8.2     pkgconfig_2.0.3    
+## [43] gtable_0.3.6        pillar_1.11.1       bslib_0.10.0       
+## [46] Rcpp_1.1.1          glue_1.8.0          statmod_1.5.1      
+## [49] xfun_0.57           tibble_3.3.1        tidyselect_1.2.1   
+## [52] rstudioapi_0.18.0   knitr_1.51          farver_2.1.2       
+## [55] rjson_0.2.23        htmltools_0.5.9     labeling_0.4.3     
+## [58] rmarkdown_2.30      compiler_4.5.3      S7_0.2.1
 ```
