@@ -1,0 +1,216 @@
+---
+title: "Weighted Gene Correlation Network Analysis"
+author: "Bioinformatics Core"
+output:
+    html_document:
+      keep_md: TRUE
+---
+
+# Weighted Gene Correlation Network Analysis (WGCNA)
+
+WGCNA analysis is an unsupervised machine learning technique. It is a powerful approach that captures the co-expression patterns from the correlation matrix. Rather than focusing on individual genes, such as in differential expression analysis we covered earlier in this workshop, it looks for clusters (modules) of genes that are connected based on the similarities in their expression patterns. These modules often correspond to biological pathways, disease states, cell types, tissue types,...
+
+
+```{r echo=FALSE, message=FALSE}
+library(kableExtra)
+```
+
+```{r echo=FALSE, message=FALSE}
+# Create the data frame
+df <- data.frame(
+  Technique = c("Approach", "Base of analysis",
+             rep("Strengths", 4), 
+             rep("Weaknesses", 5), 
+             rep("Best for", 3)),
+  DE = c("Compares gene expression between conditions",
+          "Individual gene expression",
+          "Straightforward interpretation with clear gene lists (ideally)",
+          "Good for identifying specific biomarkers or drug targets",
+          "Can work with smaller sample sizes",
+          "Easy to validate individual genes experimentally",
+          "Treats genes independently, ignoring networks",
+          "Arbitrary cutoffs may miss subtle but meaningful changes",
+          "Doesn't reveal functional gene relationships",
+          "Can produce overwhelming gene lists, or empty lists",
+          "Sensitive to noise at individual gene level",
+          "Identifying specific genes that change between groups",
+          "Finding biomarkers",
+          "Small sample sizes"),
+  WGCNA = c("Identifies co-expressed gene modules",
+            "Correlation of gene expressions",
+            "Systems-level view of gene relationships",
+            "Dimensionality reduction which reduces multiple testing burden",
+            "Module eigengenes are robust and less noisy",
+            "Useful for discovering novel pathways",
+            "Requires larger sample sizes (>15-20)",
+            "Sensitive to parameter choices",
+            "Correlation doesn't imply causation",
+            "Modules may be hard to interpret biologically",
+            "Important non-co-expressing genes end up in 'grey' module",
+            "Discovering gene network structure",
+            "Understanding coordinated biological processes",
+            "Reduce data dimension")
+)
+
+colnames(df) <- c("Technique", "Differential Expression", "WGCNA")
+
+# Create table with collapsed rows in first column
+kbl(df, format = "html", escape = FALSE) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), 
+                full_width = FALSE) %>%
+  column_spec(1, bold = TRUE) %>%
+  collapse_rows(columns = 1, valign = "top")
+```
+
+## Basic Steps of WGCNA
+
+   1. Normalization, variance stabilization and filtering
+   2. Determine soft-thresholding power for network construction
+   3. Build gene co-expression network
+   4. Explore gene modules
+
+Install necessary R packages.
+
+```{r message = F}
+if (!any(rownames(installed.packages()) == "WGCNA")){
+  BiocManager::install("WGNCA")
+}
+library(WGCNA)
+
+if (!any(rownames(installed.packages()) == "pheatmap")){
+  BiocManager::install("pheatmap")
+}
+library(pheatmap)
+
+if (!any(rownames(installed.packages()) == "viridisLite")){
+  install.packages("viridisLite")
+}
+library(viridisLite)
+
+if (!any(rownames(installed.packages()) == "matrixStats")){
+  install.packages("matrixStats")
+}
+library(matrixStats)
+
+if (!any(rownames(installed.packages()) == "gplots")){
+  install.packages("gplots")
+}
+library(gplots)
+
+library(edgeR)
+library(ggplot2)
+```
+
+### 1. Read in expression table, normalization, variance stablization and filtering
+
+We are going to use a different dataset for this exercise. The dataset has been used in 2 publications on study of cocaine's effect on gene expression: [1](https://www.sciencedirect.com/science/article/pii/S0006322318314471?via%3Dihub) and [2](https://www.science.org/doi/10.1126/sciadv.add8946?url_ver=Z39.88-2003&rfr_id=ori:rid:crossref.org&rfr_dat=cr_pub%20%200pubmed). The experiment assigned male mice to one of six groups: saline or cocaine SA + 24 hr WD; or saline/cocaine SA + 30 d WD + an acute saline/cocaine challenge within the previous drug-paired context. RNASeq was conducted on six interconnected brain reward regions. We are going to use the data from 1 brain region, nucleus accumbens.
+
+First, we are going to download the counts table and the metadata table for this dataset.
+
+
+```{r message = FALSE}
+download.file("https://raw.githubusercontent.com/ucdavis-bioinformatics-training/2026-March-RNA-Seq-Analysis/master/datasets/NAc_counts.txt.gz", "NAc_counts.txt.gz")
+download.file("https://raw.githubusercontent.com/ucdavis-bioinformatics-training/2026-March-RNA-Seq-Analysis/master/datasets/NAc_metadata.txt.gz", "NAc_metadata.txt.gz")
+counts <- read.table("NAc_counts.txt.gz", header = T, check.names = F)
+metadata <- read.table("NAc_metadata.txt.gz", header = T, sep = "\t", check.names = F)
+rownames(metadata) <- metadata$sample_names
+identical(colnames(counts), metadata$sample_names)
+```
+
+Then we are going to use the same approach that we have learned earlier to normalize the data and perform variance stablization.
+
+
+```{r}
+d0 <- DGEList(counts)
+d0 <- calcNormFactors(d0)
+expr <- t(cpm(d0, log = T))
+```
+
+Next we will filter out low variance genes to remove potential noise.
+
+```{r}
+vars <- colVars(expr)
+expr <- expr[, vars > quantile(vars, 0.75)]
+```
+
+### 2. Select soft-thresholding power
+
+The soft-thresholding power parameter is crucial for network construction. The goal of a good soft-thresholding power is to achive scale-free topology while maintaining reasonable connectivity within the network. Higher powers lead to higher suppression of weak correlations and create sparser networks with fewer but stronger connections. The optimal soft-thresholding power is dataset dependent because it reflects the underlying correlation structure of the data.
+
+The recommended selection criteria is to achieve $R^2$ $g \ge f$ 0.8-0.9, as well as a reasonable mean connectivity (< 200-300). The function __pickSoftThreshold__ scans through a series of soft-thresholding powers and produces the corresponding network characteristics that can be used for the selection.
+
+```{r}
+sft <- pickSoftThreshold(expr, dataIsExpr = T, corFnc = WGCNA::cor, networkType = "signed")
+```
+
+Let's plot $R^2$.
+
+```{r}
+metrics <- data.frame(sft$fitIndices) %>% dplyr::mutate(model_fit = -sign(slope) * SFT.R.sq)
+metrics
+
+ggplot(metrics, aes(x = Power, y = model_fit, label = Power)) +
+	geom_point() + geom_text(nudge_y = 0.1) +
+	geom_hline(yintercept = 0.8, col = "red") +
+	geom_hline(yintercept = 0.9, col = "blue") +
+	ylim(c(min(metrics$model_fit), 1.05)) + xlab("Soft Threshold (power)") +
+	ylab("Scale free topology model fit, signed R^2") +
+	ggtitle("Scale independence") + theme_classic()
+
+ggplot(metrics, aes(x = Power, y = mean.k., label = Power)) +
+	geom_point() + geom_text(nudge_y = 0.1) +
+	geom_hline(yintercept = 200, col = "red") +
+	xlab("Soft Threshold (power)") +
+	ylab("Mean connectivity") +
+	ggtitle("Mean connectivity") + theme_classic()
+```
+
+__Based on the above plot, we are going to pick the soft-thresholding power to be 12.__
+
+### 3. Build gene co-expression network
+
+```{r}
+nwk <- blockwiseModules(expr, power = 12, TOMType = "signed",
+	minModuleSize = 30, 
+	mergeCutHeight = 0.25, saveTOMs = T)
+```
+
+### 4. Explore the modules detected
+
+First, let's visualize the gene network using a dendrogram
+
+```{r}
+plotDendroAndColors(nwk$dendrograms[[1]], nwk$colors[nwk$blockGenes[[1]]], "Module Colors",
+	dendroLabels = F, addGuide = T, main =  "Gene dendrogram and module colors")
+```
+
+Let's take a look at the relationship among the modules by using the module eigengenes.
+
+```{r out.width = "70%", dpi = 300}
+MEs <- orderMEs(nwk$MEs)
+cor_MEs <- cor(MEs)
+heatmap.2(cor_MEs, col = colorRampPalette(c("blue", "white", "red"))(50),
+	key = T, key.title = "Correlation", key.xlab = "Value",
+	trace = "none", main  = "Module Eigengene Correlation")
+```
+
+Let's take a look at samples at this reduced dimension using the module eigengenes.
+
+```{r out.width = "80%", dpi = 300}
+admins <- unique(metadata$`self-administration`)
+admin_colors <- setNames(plasma(length(admins)), admins)
+challenges <- unique(metadata$challenge)
+challenge_colors <- setNames(viridis(length(challenges)), challenges)
+ann_colors <- list(`self-administration` = admin_colors,
+	challenge = challenge_colors)
+pheatmap::pheatmap(t(MEs), scale = "row", clustering_distance_cols = "euclidean",
+	clustering_method = "average", annotation_col = metadata %>%
+	dplyr::select(`self-administration`, challenge), 
+	border_color = NA, treeheight_row = 20, treeheight_col = 30,
+	cellheight = 12,
+	annotation_colors = ann_colors, show_colnames = F,
+		color = colorRampPalette(c("blue", "white", "red"))(50), fontsize = 8)
+
+```
+
+
