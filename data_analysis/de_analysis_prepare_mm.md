@@ -55,7 +55,12 @@ library(ggplot2)
 if (!any(rownames(installed.packages()) == "ComplexHeatmap")){
     BiocManager::install("ComplexHeatmap")
 }
-library(ggplot2)
+library(ComplexHeatmap)
+
+if (!any(rownames(installed.packages()) == "ggrepel")){
+    BiocManager::install("ggrepel")
+}
+library(ggrepel)
 
 if (!any(rownames(installed.packages()) == "devtools")){
   BiocManager::install("devtools")
