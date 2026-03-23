@@ -47,16 +47,6 @@ if (!any(rownames(installed.packages()) == "org.Mm.eg.db")){
 }
 library(org.Mm.eg.db)
 
-if (!any(rownames(installed.packages()) == "gplots")){
-    BiocManager::install("gplots")
-}
-library(gplots)
-
-if (!any(rownames(installed.packages()) == "RColorBrewer")){
-    BiocManager::install("RColorBrewer")
-}
-library(RColorBrewer)
-
 if (!any(rownames(installed.packages()) == "ggplot2")){
     BiocManager::install("ggplot2")
 }
