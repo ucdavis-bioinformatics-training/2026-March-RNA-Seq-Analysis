@@ -47,6 +47,11 @@ if (!any(rownames(installed.packages()) == "org.Mm.eg.db")){
 }
 library(org.Mm.eg.db)
 
+if (!any(rownames(installed.packages()) == "org.Hs.eg.db")){
+  BiocManager::install("org.Hs.eg.db")
+}
+library(org.Hs.eg.db)
+
 if (!any(rownames(installed.packages()) == "ggplot2")){
     BiocManager::install("ggplot2")
 }
