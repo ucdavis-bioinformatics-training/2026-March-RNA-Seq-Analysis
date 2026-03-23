@@ -95,7 +95,12 @@ library(gplots)
 if (!any(rownames(installed.packages()) == "impute")){
   install.packages("impute")
 }
-library(impute)
+library(impute),
+
+if (!any(rownames(installed.packages()) == "preprocessCore")){
+  install.packages("preprocessCore")
+}
+library(preprocessCore)
 
 if (!any(rownames(installed.packages()) == "devtools")){
   BiocManager::install("devtools")
