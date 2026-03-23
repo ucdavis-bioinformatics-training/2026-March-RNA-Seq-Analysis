@@ -82,14 +82,12 @@ function showResults(myq, qc, rc){
 
 # Differential Gene Expression Analysis in R
 
-* Differential Gene Expression (DGE) between conditions is determined from count data
+* Differential Expression (DE) between conditions is determined from count data
 * Generally speaking differential expression analysis is performed in a very similar manner to metabolomics, proteomics, or DNA microarrays, once normalization and transformations have been performed.
 
 A lot of RNA-seq analysis has been done in R and so there are many packages available to analyze and view this data. Two of the most commonly used are:
 * DESeq2, developed by Simon Anders (also created htseq) in Wolfgang Huber’s group at EMBL
 * edgeR and Voom (extension to Limma [microarrays] for RNA-seq), developed out of Gordon Smyth’s group from the Walter and Eliza Hall Institute of Medical Research in Australia
-
-http://bioconductor.org/packages/release/BiocViews.html#___RNASeq
 
 ## Differential Expression Analysis with Limma-Voom
 
@@ -110,7 +108,7 @@ Together they allow fast, flexible, and powerful analyses of RNA-Seq data.  Limm
 2. Calculate normalization factors (sample-specific adjustments)
 3. Filter genes (uninteresting genes, e.g. unexpressed)
 4. Account for expression-dependent variability by transformation, weighting, or modeling
-5. Fitting a linear model
+5. Fitting a statistical model
 6. Perform statistical comparisons of interest (using contrasts)
 7. Adjust for multiple testing, Benjamini-Hochberg (BH) or q-value
 8. Check results for confidence
@@ -118,8 +116,10 @@ Together they allow fast, flexible, and powerful analyses of RNA-Seq data.  Limm
 
 ```{r load_packages, echo=FALSE, warning=FALSE, message=FALSE}
 library(edgeR)
-library("RColorBrewer")
-library("gplots")
+library(dplyr)
+library("ComplexHeatmap")
+library("ggplot2")
+library("ggrepel")
 ```
 
 
@@ -140,7 +140,7 @@ d0 <- DGEList(counts)
   
 **1a\.** Read in Annotation
 ```{r read_annotation}
-anno <- read.delim("ensembl_mm_114.txt",as.is=T)
+anno <- read.delim("ensembl_mm_115.txt")
 dim(anno)
 head(anno)
 tail(anno)
@@ -223,10 +223,9 @@ submitButton1.addEventListener('click', function() {showResults(myQuestions1, qu
 
 ## 2. Preprocessing and Normalization factors
 
-In differential expression analysis, only sample-specific effects need to be normalized, we are NOT concerned with comparisons and quantification of absolute expression.
+In differential expression analysis, only sample-specific effects need to be normalized, we are NOT concerned with comparisons or quantification of absolute expression.
 
-* Sequence depth – is a sample specific effect and needs to be adjusted for.
-* RNA composition - finding a set of scaling factors for the library sizes that minimize the log-fold changes between the samples for most genes (edgeR uses a trimmed mean of M-values between each pair of sample)
+* Sequencing depth – is a sample specific effect and needs to be adjusted for.
 * GC content – is NOT sample-specific (except when it is)
 * Gene Length – is NOT sample-specific (except when it is)
 
@@ -247,8 +246,8 @@ We filter genes based on non-experimental factors to reduce the number of genes/
 
 Common filters include:
 1. to remove genes with a max value (X) of less then Y.
-2. to remove genes that are less than X normalized read counts (cpm) across a certain number of samples. Ex: rowSums(cpms <=1) < 3 , require at least 1 cpm in at least 3 samples to keep.
-3. A less used filter is for genes with minimum variance across all samples, so if a gene isn't changing (constant expression) its inherently not interesting therefor no need to test. 
+2. to remove genes with fewer than X normalized read counts (cpm) across a certain number of samples. Ex: rowSums(cpms <=1) < 3 , require at least 1 cpm in at least 3 samples to keep.
+3. A less used filter is for genes with minimum variance across all samples, so if a gene isn't changing (constant expression) its inherently not interesting therefore no need to test. 
 
 We will use the built in function filterByExpr() to filter low-expressed genes.  filterByExpr uses the experimental design to determine how many samples a gene needs to be expressed in to stay.  Importantly, once this number of samples has been determined, the group information is not used in filtering.
 
@@ -402,7 +401,7 @@ tmp <- eBayes(tmp)
 
 ## 7. Multiple Testing Adjustment
 
-The TopTable. Adjust for multiple testing using method of Benjamini & Hochberg (BH), or its 'alias' fdr. "[Controlling the false discovery rate: a practical and powerful approach to multiple testing](http://www.jstor.org/stable/2346101).
+The topTable listing results for the most significant genes. Implements adjustment for multiple testing using method of Benjamini & Hochberg (BH). "[Controlling the false discovery rate: a practical and powerful approach to multiple testing](http://www.jstor.org/stable/2346101).
 
 here `n=Inf` says to produce the topTable for **all** genes. 
 ```{r toptable}
@@ -411,8 +410,10 @@ top.table <- topTable(tmp, adjust.method = "BH", sort.by = "P", n = Inf)
 
 ### Multiple Testing Correction
 
-Simply a must! Best choices are:
-  * [FDR](http://www.jstor.org/stable/2346101) (false discovery rate), such as Benjamini-Hochberg (1995).
+Multiple testing adjustment is the standard in the field and is required because testing thousands of genes makes the probability of having a raw p-value less than 0.05 for a gene that isn't truly different quite high.
+
+Two common adjustment methods are:
+  * [Benjamini-Hochberg](http://www.jstor.org/stable/2346101) (false discovery rate), such as Benjamini-Hochberg (1995).
   * [Qvalue](https://rss.onlinelibrary.wiley.com/doi/abs/10.1111/1467-9868.00346) - Storey (2002)
 
 The FDR (or qvalue) is a statement about the list and is no longer about the gene (pvalue). So a FDR of 0.05, says you expect 5% false positives among the list of genes with an FDR of 0.05 or less.
@@ -424,9 +425,20 @@ The statement “Statistically significantly different” means FDR of 0.05 or l
 length(which(top.table$adj.P.Val < 0.05))
 ```
 
-## 8. Check your results for confidence.
+## 8. Add annotation and write results to a file
+```{r}
+top.table$Gene.stable.ID.version <- rownames(top.table)
+top.table <- left_join(top.table, anno, by = "Gene.stable.ID.version")
+top.table <- dplyr::select(top.table, Gene.stable.ID.version, Gene.name, everything())
 
-You've conducted an experiment, you've seen a phenotype. Now check which genes are most differentially expressed (show the top 50)? Look up these top genes, their description and ensure they relate to your experiment/phenotype. 
+head(top.table)
+write.table(top.table, file = "WT.C_v_WT.NC.txt", row.names = F, sep = "\t", quote = F)
+```
+
+## 9. Check your results for confidence.
+
+You've conducted an experiment, you've seen a phenotype. Now check which genes are most differentially expressed (top rows of the table).  Look at their their description and ensure they relate to your experiment/phenotype. 
+
 ```{r de_genes_top50}
 head(top.table, 50)
 ```
@@ -438,17 +450,10 @@ Columns are
 * adj.P.Val: Benjamini-Hochberg false discovery rate adjusted p-value
 * B: log-odds that gene is DE (arguably less useful than the other columns)
 
-ENSMUSG00000030203.18 has higher expression at WT NC than at WT C (logFC is negative).  ENSMUSG00000026193.16 has higher expression at WT C than at WT NC (logFC is positive).
+Smc6 has higher expression at WT NC than at WT C (logFC is negative).  
+Plcb1 has higher expression at WT C than at WT NC (logFC is positive).
 
-## 9. Write top.table to a file, adding in cpms and annotation
-```{r}
-top.table$Gene <- rownames(top.table)
-top.table <- top.table[,c("Gene", names(top.table)[1:6])]
-top.table <- data.frame(top.table,anno[match(top.table$Gene,anno$Gene.stable.ID.version),],logcpm[match(top.table$Gene,rownames(logcpm)),])
-
-head(top.table)
-write.table(top.table, file = "WT.C_v_WT.NC.txt", row.names = F, sep = "\t", quote = F)
-```
+* The interpretation of the direction of the log fold change depends on how you set up the comparison in makeContrasts *
 
 ## Quiz 3
 
@@ -644,36 +649,45 @@ fit <- lmFit(y, mm)
 contrast.matrix <- makeContrasts(groupKOMIR150.C - groupWT.C, levels=colnames(coef(fit)))
 fit2 <- contrasts.fit(fit, contrast.matrix)
 fit2 <- eBayes(fit2)
-top.table <- topTable(fit2, coef = 1, sort.by = "P", n = 40)
+top.table <- topTable(fit2, sort.by = "P", n = Inf)
+top.table$Gene.stable.ID.version <- rownames(top.table)
+top.table <- left_join(top.table, anno, by = "Gene.stable.ID.version")
 ```
 
 ## Volcano plot
 
-```{r fig.width=4, fig.height=4}
-volcanoplot(fit2, coef=1, highlight=8, names=rownames(fit2), main="Genotype KOMIR150 vs. WT for cell type C", cex.main = 0.8)
+```{r}
+plotdat <- top.table
+plotdat$Category <- "Not significant"
+plotdat$Category[plotdat$adj.P.Val < 0.05 & plotdat$logFC > 0] <- "Upregulated"
+plotdat$Category[plotdat$adj.P.Val < 0.05 & plotdat$logFC < 0] <- "Downregulated"
+plotdat$Category <- factor(plotdat$Category, levels = c("Upregulated", "Downregulated", "Not significant"))
+labeldat <- plotdat[1:20,]
+volcano <- ggplot(plotdat, aes(x = logFC, y = -log10(P.Value), color = Category)) + geom_point(show.legend = TRUE) + geom_text_repel(data = labeldat, aes(label = Gene.name), color = "black", max.overlaps = Inf) + scale_color_manual(values = c("blue", "red", "grey"), breaks = levels(plotdat$Category), drop = FALSE) + labs(color = NULL, title = "KOMIR150 - WT, cell type C") + theme_bw()
+volcano
 
-head(anno[match(rownames(fit2), anno$Gene.stable.ID.version),
-     c("Gene.stable.ID.version", "Gene.name") ])
-identical(anno[match(rownames(fit2), anno$Gene.stable.ID.version),
-     c("Gene.stable.ID.version")], rownames(fit2))
 
-volcanoplot(fit2, coef=1, highlight=8, names=anno[match(rownames(fit2), anno$Gene.stable.ID.version), "Gene.name"], main="Genotype KOMIR150 vs. WT for cell type C", cex.main = 0.8)
 
 ```
 
 ## Heatmap
-```{r fig.height=8}
-#using a red and blue color scheme without traces and scaling each row
-heatmap.2(logcpm[rownames(top.table),],col=brewer.pal(11,"RdBu"),scale="row", trace="none")
-
-anno[match(rownames(top.table), anno$Gene.stable.ID.version),
-     c("Gene.stable.ID.version", "Gene.name")]
-identical(anno[match(rownames(top.table), anno$Gene.stable.ID.version), "Gene.stable.ID.version"], rownames(top.table))
-
-heatmap.2(logcpm[rownames(top.table),],col=brewer.pal(11,"RdBu"),scale="row", trace="none", labRow = anno[match(rownames(top.table), anno$Gene.stable.ID.version), "Gene.name"])
+We will use the ComplexHeatmap R package to generate a heatmap of the top genes from the previous DE test.  ComplexHeatmap is capable of making some truly lovely figures, see the book [here](https://jokergoo.github.io/ComplexHeatmap-reference/book/)
+```{r, fig.width = 8, fig.height = 8}
+# Select top 20 DE genes from the above DE analysis
+genes.use <- top.table$Gene.stable.ID.version[1:20]
+names.use <- top.table$Gene.name[1:20]
+plotdat <- cpm(d, log = TRUE, prior.count = 1)
+plotdat <- plotdat[genes.use,]
+# Adding color bars showing metadata
+set.seed(101) # annotation colors are random!
+ha <- HeatmapAnnotation(Group = group, Mouse = mouse, annotation_name_side = "left")
+ht <- Heatmap(plotdat, bottom_annotation = ha, name = "log2 Normalized Expression", row_labels = names.use)
+draw(ht)
 ```
 
-## 2 factor venn diagram
+## Venn diagram
+
+We recommend using Venn diagrams cautiously.  Often, a question about the non-overlapping parts of a Venn diagram is better answered by testing an interaction effect.
 
 ```{r fig.width=6, fig.height=6}
 mm <- model.matrix(~0 + group + mouse)
@@ -683,7 +697,6 @@ fit <- lmFit(y, mm)
 contrast.matrix <- makeContrasts(groupKOMIR150.C - groupWT.C, groupKOMIR150.NC - groupWT.NC, levels=colnames(coef(fit)))
 fit2 <- contrasts.fit(fit, contrast.matrix)
 fit2 <- eBayes(fit2)
-top.table <- topTable(fit2, coef = 1, sort.by = "P", n = 40)
 
 results <- decideTests(fit2)
 vennDiagram(results, names = c("C", "NC"), main = "DE Genes Between KOMIR150 and WT by Cell Type", cex.main = 0.8)
