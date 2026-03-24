@@ -751,7 +751,7 @@ The JSON files output by HTStream provide this type of information.
     zcat  01-HTS_Preproc/mouse_110_WT_C/mouse_110_WT_C_R1.fastq.gz | grep  AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC | wc -l
     ```
 
-    * *What is the reduction in adapters found?* (1704812)
+    * *What is the reduction in adapters found?* (461989)
 
     * *How could you modify the cleaning pipeline in order to remove the remaining sequences?*
 
