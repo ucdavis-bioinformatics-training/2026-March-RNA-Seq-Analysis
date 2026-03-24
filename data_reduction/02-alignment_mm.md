@@ -109,7 +109,7 @@ May seem intuitive to map RNAseq data to transcriptome, but it is not that simpl
   * Which transcript of a gene should you map to? canonical transcript (which is that)?
   * Shouldn’t map to all splice variants as these would show up as ‘multi-mappers’.
 
-More so, a aligner will try to map every read, somewhere, provided the alignment meets its minimum requirements.
+More so, an aligner will try to map every read, somewhere, provided the alignment meets its minimum requirements.
   * Need to provide a mapper with all possible places the read could have arisen from, which is best represented by the genome. Otherwise, you get mis-mapping because its close enough.
 
 ### Genome and Genome Annotation
