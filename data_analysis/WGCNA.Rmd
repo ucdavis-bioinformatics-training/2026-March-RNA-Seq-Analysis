@@ -10,6 +10,8 @@ output:
 
 WGCNA analysis is an unsupervised machine learning technique. It is a powerful approach that captures the co-expression patterns from the correlation matrix. Rather than focusing on individual genes, such as in differential expression analysis we covered earlier in this workshop, it looks for clusters (modules) of genes that are connected based on the similarities in their expression patterns. These modules often correspond to biological pathways, disease states, cell types, tissue types,...
 
+When applied to multiomics data, WGCNA can reduce each dataset down to a manageable number of features for a more interpretable analysis.
+
 
 ```{r echo=FALSE, message=FALSE}
 library(kableExtra)
@@ -25,7 +27,7 @@ df <- data.frame(
   DE = c("Compares gene expression between conditions",
           "Individual gene expression",
           "Straightforward interpretation with clear gene lists (ideally)",
-          "Good for identifying specific biomarkers or drug targets",
+          "Good for identifying candidate biomarkers",
           "Can work with smaller sample sizes",
           "Easy to validate individual genes experimentally",
           "Treats genes independently, ignoring networks",
@@ -34,10 +36,10 @@ df <- data.frame(
           "Can produce overwhelming gene lists, or empty lists",
           "Sensitive to noise at individual gene level",
           "Identifying specific genes that change between groups",
-          "Finding biomarkers",
+          "Finding candidate biomarkers",
           "Small sample sizes"),
   WGCNA = c("Identifies co-expressed gene modules",
-            "Correlation of gene expressions",
+            "Correlation of gene expression",
             "Systems-level view of gene relationships",
             "Dimensionality reduction which reduces multiple testing burden",
             "Module eigengenes are robust and less noisy",
@@ -72,33 +74,15 @@ kbl(df, format = "html", escape = FALSE) %>%
 Install necessary R packages.
 
 ```{r message = F}
-if (!any(rownames(installed.packages()) == "WGCNA")){
-  BiocManager::install("WGNCA")
-}
 library(WGCNA)
-
-if (!any(rownames(installed.packages()) == "pheatmap")){
-  BiocManager::install("pheatmap")
-}
-library(pheatmap)
-
-if (!any(rownames(installed.packages()) == "viridisLite")){
-  install.packages("viridisLite")
-}
+library(ComplexHeatmap)
 library(viridisLite)
-
-if (!any(rownames(installed.packages()) == "matrixStats")){
-  install.packages("matrixStats")
-}
 library(matrixStats)
-
-if (!any(rownames(installed.packages()) == "gplots")){
-  install.packages("gplots")
-}
-library(gplots)
-
 library(edgeR)
 library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(clusterProfiler)
 ```
 
 ### 1. Read in expression table, normalization, variance stablization and filtering
@@ -123,24 +107,33 @@ Then we are going to use the same approach that we have learned earlier to norma
 ```{r}
 d0 <- DGEList(counts)
 d0 <- calcNormFactors(d0)
-expr <- t(cpm(d0, log = T))
+expr0 <- cpm(d0, log = T)
 ```
 
-Next we will filter out low variance genes to remove potential noise.
+Next we will filter out low expressed genes, using the filterByExpr function in edgeR.
 
 ```{r}
-vars <- colVars(expr)
-expr <- expr[, vars > quantile(vars, 0.75)]
+keep <- filterByExpr(d0, model.matrix(~group, data = metadata))
+expr0 <- expr0[keep,]
+```
+
+Unlike many other programs, WGCNA works on a matrix where the rows are samples and the columns are genes.
+```{r}
+expr <- t(expr0)
 ```
 
 ### 2. Select soft-thresholding power
 
 The soft-thresholding power parameter is crucial for network construction. The goal of a good soft-thresholding power is to achive scale-free topology while maintaining reasonable connectivity within the network. Higher powers lead to higher suppression of weak correlations and create sparser networks with fewer but stronger connections. The optimal soft-thresholding power is dataset dependent because it reflects the underlying correlation structure of the data.
 
+In a scale-free network, most nodes (genes) have few connections and a few nodes have lots of connections.
+
 The recommended selection criteria is to achieve $R^2$ $g \ge f$ 0.8-0.9, as well as a reasonable mean connectivity (< 200-300). The function __pickSoftThreshold__ scans through a series of soft-thresholding powers and produces the corresponding network characteristics that can be used for the selection.
 
+We will use Tukey's robust biweight correlation to estimate correlations.
+
 ```{r}
-sft <- pickSoftThreshold(expr, dataIsExpr = T, corFnc = WGCNA::cor, networkType = "signed")
+sft <- pickSoftThreshold(expr, dataIsExpr = T, networkType = "signed", corFnc = "bicor", RsquaredCut = 0.8)
 ```
 
 Let's plot $R^2$.
@@ -165,14 +158,12 @@ ggplot(metrics, aes(x = Power, y = mean.k., label = Power)) +
 	ggtitle("Mean connectivity") + theme_classic()
 ```
 
-__Based on the above plot, we are going to pick the soft-thresholding power to be 12.__
+__Based on the above plot, we are going to pick the soft-thresholding power to be 12.__ With a power of 12, the R^2 value is close to 0.8 while still maintaining a reasonable amount of connectivity.
 
 ### 3. Build gene co-expression network
 
 ```{r}
-nwk <- blockwiseModules(expr, power = 12, TOMType = "signed",
-	minModuleSize = 30, 
-	mergeCutHeight = 0.25, saveTOMs = T)
+nwk <- blockwiseModules(expr, power = 12, minModuleSize = 30, TOMType = "signed", corType = "bicor", mergeCutHeight = 0.4)
 ```
 
 ### 4. Explore the modules detected
@@ -184,33 +175,93 @@ plotDendroAndColors(nwk$dendrograms[[1]], nwk$colors[nwk$blockGenes[[1]]], "Modu
 	dendroLabels = F, addGuide = T, main =  "Gene dendrogram and module colors")
 ```
 
-Let's take a look at the relationship among the modules by using the module eigengenes.
 
-```{r out.width = "70%", dpi = 300}
-MEs <- orderMEs(nwk$MEs)
-cor_MEs <- cor(MEs)
-heatmap.2(cor_MEs, col = colorRampPalette(c("blue", "white", "red"))(50),
-	key = T, key.title = "Correlation", key.xlab = "Value",
-	trace = "none", main  = "Module Eigengene Correlation")
+Let's look at what genes are in each module and merge in annotation information
+```{r}
+module.members <- data.frame(Gene.stable.ID = names(nwk$colors), Module = nwk$colors)
+anno <- read.delim("ensembl_mm_115.txt")
+module.members <- left_join(module.members, anno, by = "Gene.stable.ID")
+module.members <- arrange(module.members, Module)
+head(module.members)
+write.table(module.members, file = "module_memberships.txt", sep = "\t", quote = FALSE, row.names = FALSE)
 ```
 
-Let's take a look at samples at this reduced dimension using the module eigengenes.
+The function chooseTopHubInEachModule can be used to identify highly connected "hub" genes:
+```{r}
+hubs <- chooseTopHubInEachModule(expr, colorh = nwk$colors)
 
-```{r out.width = "80%", dpi = 300}
+# Make into a data frame and merge in annotation
+hub.data <- data.frame(Module = names(hubs), TopHubGene = hubs) %>%
+  left_join(anno, by = c("TopHubGene" = "Gene.stable.ID")) %>%
+  select(Module, TopHubGene, Gene.name, Gene.description)
+hub.data
+```
+
+Gene ontology enrichment can be used to characterize genes in a module. We use clusterProfiler here but topGO can also be used.
+
+```{r}
+module.use <- "purple" 
+module.genes <- names(nwk$colors)[nwk$colors == module.use]
+module.genes.entrez <- bitr(module.genes, fromType = "ENSEMBL", toType = "ENTREZID", OrgDb = "org.Mm.eg.db")
+go <- enrichGO(module.genes.entrez$ENTREZID, OrgDb = "org.Mm.eg.db")
+go <- setReadable(go, OrgDb = "org.Mm.eg.db")
+as.data.frame(go)
+```
+
+Let's take a look at the correlations among the modules by using the module eigengenes.  We use a Spearman (nonparametric) correlation.
+
+All WGCNA module names are valid R color names that can be used in plotting. 
+
+```{r, fig.width = 10, fig.height = 10}
+MEs <- orderMEs(nwk$MEs)
+cor_MEs <- cor(MEs, method = "spearman")
+colors <- gsub("ME", "", rownames(cor_MEs))
+names(colors) <- rownames(cor_MEs)
+ra <- rowAnnotation(Module = rownames(cor_MEs), col = list(Module = colors), show_legend = FALSE)
+ca <- columnAnnotation(Module = rownames(cor_MEs), col = list(Module = colors), show_legend = FALSE)
+ht <- Heatmap(cor_MEs, name = "Spearman\nCorrelation", column_title = "Module Eigengene Correlation", left_annotation = ra, top_annotation = ca)
+draw(ht)
+```
+
+*For the above plot, bear in mind that a simple correlation coefficient may not be appropriate if your data have repeated measures or other complications.  Any analysis on the eigengenes requires the same thoughtfulness as an analysis on your original data.*
+
+Let's take a look at samples at this reduced dimension using the module eigengenes. We can plot a heatmap of the eigengenes by samples exactly as we would plot genes by samples for the original data.
+
+```{r, fig.width = 12}
 admins <- unique(metadata$`self-administration`)
 admin_colors <- setNames(plasma(length(admins)), admins)
 challenges <- unique(metadata$challenge)
 challenge_colors <- setNames(viridis(length(challenges)), challenges)
-ann_colors <- list(`self-administration` = admin_colors,
-	challenge = challenge_colors)
-pheatmap::pheatmap(t(MEs), scale = "row", clustering_distance_cols = "euclidean",
-	clustering_method = "average", annotation_col = metadata %>%
-	dplyr::select(`self-administration`, challenge), 
-	border_color = NA, treeheight_row = 20, treeheight_col = 30,
-	cellheight = 12,
-	annotation_colors = ann_colors, show_colnames = F,
-		color = colorRampPalette(c("blue", "white", "red"))(50), fontsize = 8)
+ann_colors <- list(`Self-administration` = admin_colors,
+	Challenge = challenge_colors)
 
+row_colors <- gsub("ME", "", colnames(MEs))
+names(row_colors) <- colnames(MEs)
+
+ca <- columnAnnotation(`Self-administration` = metadata$`self-administration`, Challenge = metadata$challenge, col = list(`Self-administration` = admin_colors,
+	Challenge = challenge_colors))
+ra <- rowAnnotation(Module = colnames(MEs), col = list(Module = row_colors), show_legend = FALSE, show_annotation_name = FALSE)
+ht <- Heatmap(t(MEs), bottom_annotation = ca, right_annotation = ra, name = "Eigengene expression", column_title = "Module Eigengenes by Sample")
+draw(ht)
+```
+
+We can make boxplots of module eigengenes by experimental group:
+
+```{r, fig.width = 6, fig.height = 8}
+# Turn MEs into long dataset for plotting
+tmp <- MEs
+tmp$sample_names <- rownames(tmp)
+longMEs <- pivot_longer(tmp, cols = -sample_names, names_to = "Module", values_to = "Expression") %>%
+# Merge in metadata
+    left_join(metadata, by = "sample_names")
+longMEs$group2 <- interaction(longMEs$`self-administration`, longMEs$challenge, sep = "/")
+ggplot(longMEs, aes(x = group2, y = Expression, fill = Module)) + 
+  geom_boxplot() + 
+  facet_wrap(~Module, nrow = 4) + 
+  scale_fill_manual(breaks = colnames(MEs), values = gsub("ME", "", colnames(MEs))) + labs(x = "Self-Administration/Challenge", y = "Eigengene Expression", title = "Module Eigengene Expression by Group") + 
+  theme_bw() + 
+  theme(legend.position = "none", axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) 
+  
 ```
 
 
