@@ -273,7 +273,7 @@ ln -s /share/workshop/mrnaseq_workshop/jli/rnaseq_example/01-HTS_Preproc /share/
 
     The table that this script creates ("summary_salmon_alignments.txt") can be pulled to your laptop via 'scp', or WinSCP, etc., and imported into a spreadsheet. Are all samples behaving similarly? Discuss ...
 
-## Generating gene level read counts table
+## Generating transcript level read counts table
 
 1. Similar to STAR, we want to do these steps for ALL of the read count files... and to do that we will be using a 'for loop' directly on the command line. First, just run a simple 'for loop' that will print out the names of all the files we want to use:
 
@@ -289,7 +289,7 @@ ln -s /share/workshop/mrnaseq_workshop/jli/rnaseq_example/01-HTS_Preproc /share/
     mkdir -p 03-Counts/tmp
     for sample in `cat samples.txt`; do \
         echo ${sample}
-        tail -n +2 02-Salmon_alignment/${sample}/quant.genes.sf | cut -f4 > 03-Counts/tmp/${sample}.count
+        tail -n +2 02-Salmon_alignment/${sample}/quant.sf | cut -f4 > 03-Counts/tmp/${sample}.count
     done
     ```
 
@@ -299,14 +299,14 @@ ln -s /share/workshop/mrnaseq_workshop/jli/rnaseq_example/01-HTS_Preproc /share/
 
 
     ```bash
-    tail -n +2 02-Salmon_alignment/mouse_110_WT_C/quant.genes.sf | cut -f1 > 03-Counts/tmp/geneids.txt
-    head 03-Counts/tmp/geneids.txt
+    tail -n +2 02-Salmon_alignment/mouse_110_WT_C/quant.sf | cut -f1 > 03-Counts/tmp/transcriptids.txt
+    head 03-Counts/tmp/transcriptids.txt
     ```
 
     Finally, we want to combine all of these columns together using the 'paste' command, and put it in a temporary file:
 
     ```bash
-    paste 03-Counts/tmp/geneids.txt 03-Counts/tmp/*.count > 03-Counts/tmp/tmp.out
+    paste 03-Counts/tmp/transcriptids.txt 03-Counts/tmp/*.count > 03-Counts/tmp/tmp.out
     ```
 
 1. The final step is to create a header of sample names and combine it with the temp file. The header is just all of the sample names separated by tabs. And again, since we pasted the columns in sorted order (wildcards automatically sort in order), the columns just need to be in that same order.
