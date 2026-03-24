@@ -37,6 +37,11 @@ if (!any(rownames(installed.packages()) == "dplyr")){
 }
 library(dplyr)
 
+if (!any(rownames(installed.packages()) == "tidyr")){
+  BiocManager::install("tidyr")
+}
+library(tidyr)
+
 if (!any(rownames(installed.packages()) == "Rgraphviz")){
   BiocManager::install("Rgraphviz")
 }
@@ -95,7 +100,7 @@ library(gplots)
 if (!any(rownames(installed.packages()) == "impute")){
   install.packages("impute")
 }
-library(impute),
+library(impute)
 
 if (!any(rownames(installed.packages()) == "preprocessCore")){
   install.packages("preprocessCore")
