@@ -170,7 +170,7 @@ The soft-thresholding power parameter is crucial for network construction. The g
 
 In a scale-free network, most nodes (genes) have few connections and a few nodes have lots of connections.
 
-The recommended selection criteria is to achieve $R^2$ $g \ge f$ 0.8-0.9, as well as a reasonable mean connectivity (< 200-300). The function __pickSoftThreshold__ scans through a series of soft-thresholding powers and produces the corresponding network characteristics that can be used for the selection.
+The recommended selection criteria is to achieve R^2 >= 0.8-0.9, as well as a reasonable mean connectivity (< 200-300). The function __pickSoftThreshold__ scans through a series of soft-thresholding powers and produces the corresponding network characteristics that can be used for the selection.
 
 We will use Tukey's robust biweight correlation to estimate correlations.
 
@@ -202,7 +202,7 @@ sft <- pickSoftThreshold(expr, dataIsExpr = T, networkType = "signed", corFnc = 
 ## 15    20 8.43e-01 -2.03000          0.990    19.0      10.3    172
 ```
 
-Let's plot $R^2$.
+Let's plot R^2.
 
 
 ``` r
