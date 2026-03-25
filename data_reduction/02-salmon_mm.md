@@ -246,6 +246,15 @@ ln -s /share/workshop/mrnaseq_workshop/jli/rnaseq_example/01-HTS_Preproc /share/
 
     For differential expression analysis at gene level, we recommend using __tximport__ or __tximeta__ R package to import salmon quantification results. __tximport__ allows the correction for transcript length biases (ie. changes to the average transcript length across samples) by calculating an offset or to calculate a bias corrected counts.
 
+    ```r
+    samples <- read.table("samples.txt", header = F, sep = "\t")$V1
+    files <- file.path("02-Salmon_alignment", samples, "quant.sf")
+    names(files) <- samples
+    tx2gene <- read.table("References/tx2gene.txt", header = F, sep = "\t")[, c(2, 1)]
+    txi_salmon <- tximport(files, type = "salmon", tx2gene = tx2gene, countsFromAbundance = "lengthScaledTPM")
+    write.table(txi_salmon$counts, file="rnaseq_salmon_gene_counts.txt", sep = "\t", col.names = T, row.names = T, quote = F)
+    ```
+
 ## Quality Assurance - Mapping statistics as QA/QC.
 
 1. Once your jobs have finished successfully (check the error and out logs like we did in the previous exercise), use a script of ours, salmon_stats.R, to collect the alignment stats. Don't worry about the script's contents at the moment; you'll use very similar commands to create a counts table in the next section. For now:
