@@ -250,7 +250,7 @@ ln -s /share/workshop/mrnaseq_workshop/jli/rnaseq_example/01-HTS_Preproc /share/
     samples <- read.table("samples.txt", header = F, sep = "\t")$V1
     files <- file.path("02-Salmon_alignment", samples, "quant.sf")
     names(files) <- samples
-    tx2gene <- read.table("References/tx2gene.txt", header = F, sep = "\t")[, c(2, 1)]
+    tx2gene <- read.table("/share/workshop/mrnaseq_workshop/Data/tx2gene.txt", header = F, sep = "\t")[, c(2, 1)]
     txi_salmon <- tximport(files, type = "salmon", tx2gene = tx2gene, countsFromAbundance = "lengthScaledTPM")
     write.table(txi_salmon$counts, file="rnaseq_salmon_gene_counts.txt", sep = "\t", col.names = T, row.names = T, quote = F)
     ```
