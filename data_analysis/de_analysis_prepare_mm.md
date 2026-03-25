@@ -73,7 +73,7 @@ if (!any(rownames(installed.packages()) == "ggrepel")){
 library(ggrepel)
 
 if (!any(rownames(installed.packages()) == "WGCNA")){
-  BiocManager::install("WGNCA")
+  BiocManager::install("WGCNA")
 }
 library(WGCNA)
 
