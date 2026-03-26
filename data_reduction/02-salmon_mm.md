@@ -1,4 +1,4 @@
-# Alignment using Salmon
+# Quantification using Salmon
 
 *This document assumes [preproc htstream](./preproc_htstream.md) has been completed.*
 **IF** for some reason it didn't finish, is corrupted or you missed the session, you can link over a completed copy
@@ -7,11 +7,11 @@ cp -r /share/workshop/mrnaseq_workshop/jli/rnaseq_example/HTS_testing /share/wor
 ln -s /share/workshop/mrnaseq_workshop/jli/rnaseq_example/01-HTS_Preproc /share/workshop/mrnaseq_workshop/$USER/rnaseq_example/.
 ```
 
-## Salmon Aligner
+## Salmon Aligner: mapping-based approach
 
 [Salmon](https://salmon.readthedocs.io/en/latest/salmon.html) is a tool for quantifying the expression of transcripts using RNA-seq data. Salmon uses new algorithms (specifically, coupling the concept of quasi-mapping with a two-phase inference procedure) to provide accurate expression estimates very quickly (i.e. wicked-fast) and while using little memory. Salmon performs its inference using an expressive and realistic model of RNA-seq data that takes into account experimental attributes and biases commonly observed in real RNA-seq data.
 
-## We first need to index the reference (In this case the transcriptome)
+### We first need to index the reference (In this case the transcriptome)
 
 
 
@@ -105,7 +105,7 @@ ln -s /share/workshop/mrnaseq_workshop/jli/rnaseq_example/01-HTS_Preproc /share/
     ```bash
     ln -s /share/workshop/mrnaseq_workshop/Data/salmon_gencode.vM38.index /share/workshop/mrnaseq_workshop/$USER/rnaseq_example/References/.
     ```
-## Alignments
+### Alignments
 
 1. We are now ready to try an alignment:
 
@@ -255,7 +255,7 @@ ln -s /share/workshop/mrnaseq_workshop/jli/rnaseq_example/01-HTS_Preproc /share/
     write.table(txi_salmon$counts, file="rnaseq_salmon_gene_counts.txt", sep = "\t", col.names = T, row.names = T, quote = F)
     ```
 
-## Quality Assurance - Mapping statistics as QA/QC.
+### Quality Assurance - Mapping statistics as QA/QC.
 
 1. Once your jobs have finished successfully (check the error and out logs like we did in the previous exercise), use a script of ours, salmon_stats.R, to collect the alignment stats. Don't worry about the script's contents at the moment; you'll use very similar commands to create a counts table in the next section. For now:
 
@@ -282,7 +282,7 @@ ln -s /share/workshop/mrnaseq_workshop/jli/rnaseq_example/01-HTS_Preproc /share/
 
     The table that this script creates ("summary_salmon_alignments.txt") can be pulled to your laptop via 'scp', or WinSCP, etc., and imported into a spreadsheet. Are all samples behaving similarly? Discuss ...
 
-## Generating transcript level read counts table
+### Generating transcript level read counts table
 
 1. Similar to STAR, we want to do these steps for ALL of the read count files... and to do that we will be using a 'for loop' directly on the command line. First, just run a simple 'for loop' that will print out the names of all the files we want to use:
 
